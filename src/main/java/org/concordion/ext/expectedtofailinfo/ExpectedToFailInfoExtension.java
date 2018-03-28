@@ -15,7 +15,7 @@ import org.concordion.api.listener.ExampleListener;
  * <p></p>
  * <pre>
  * In a Fixture class annotate the class with:
- * @Extensions({ ExpectedToFailInfoExtension.class })
+ * \@Extensions({ ExpectedToFailInfoExtension.class })
  *
  * To a specification add:
  * ## [My Specification Name](- "Reason my specification is failing c:status=expectedToFail")
@@ -31,7 +31,7 @@ import org.concordion.api.listener.ExampleListener;
  */
 public class ExpectedToFailInfoExtension implements ConcordionExtension, ExampleListener {
 
-    // TODO - LSP - maybe based on example, we should move the Styling to a css file as a resource?
+    // TODO - LSP - based on example, should I move the Styling to a css file as a resource?
     private final String STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
     private final String TEXT_SIZE = "h3";
 
