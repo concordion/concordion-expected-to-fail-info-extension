@@ -1,0 +1,16 @@
+// Luke Pearson
+// 27-03-2018
+
+
+
+apply from: "https://raw.githubusercontent.com/concordion/concordion-extension-build/master/extension-build.gradle"
+apply plugin: "java"
+apply plugin: "idea"
+
+wrapper {
+    gradleVersion = "2.2"
+}
+
+repositories {
+    mavenCentral()
+}
