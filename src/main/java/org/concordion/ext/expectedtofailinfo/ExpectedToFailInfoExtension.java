@@ -31,14 +31,14 @@ import org.concordion.api.listener.ExampleListener;
  */
 public class ExpectedToFailInfoExtension implements ConcordionExtension, ExampleListener {
 
-    // TODO - LSP - based on example, should I move the Styling to a css file as a resource?
-    private final String STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
+    private String STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
     private final String TEXT_SIZE = "h3";
 
     private final String ORIGINAL_TEXT = "This example has been marked as EXPECTED_TO_FAIL";
 
     private static final String NOTE = "Note";
     private static final String REASON = "Reason";
+
 
     @Override
     public void addTo(ConcordionExtender concordionExtender) {
@@ -72,6 +72,10 @@ public class ExpectedToFailInfoExtension implements ConcordionExtension, Example
                 }
             }
         }
+    }
+
+    public void setStyle(String style) {
+        this.STYLE = style;
     }
 
     private Element createANewMessage(String message, String className) {

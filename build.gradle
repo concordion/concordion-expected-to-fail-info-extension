@@ -1,16 +1,38 @@
 // Luke Pearson
 // 27-03-2018
 
-
+description = "An extension to concordion to highlight expected to fail information on living documentation"
 
 apply from: "https://raw.githubusercontent.com/concordion/concordion-extension-build/master/extension-build.gradle"
 apply plugin: "java"
 apply plugin: "idea"
 
 wrapper {
-    gradleVersion = "2.2"
+    gradleVersion = "4.2.1"
 }
 
 repositories {
     mavenCentral()
 }
+
+/*dependencies {
+    compile 'org.concordion:concordion:2.1.2'
+    testCompile 'org.concordion:concordion:2.1.2:tests'
+}*/
+
+/*
+githubPages {
+    repoUri = 'https://github.com/concordion/concordion-expected-to-fail-info-extension.git'
+    pages {
+        from 'docs'
+
+        from ('build/reports/spec/') {
+            into 'spec'
+        }
+
+        from ('build/docs/javadoc/') {
+            into 'api'
+        }
+    }
+}
+*/
