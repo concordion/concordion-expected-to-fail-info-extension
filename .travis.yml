@@ -1,7 +1,6 @@
 language: java
 jdk:
-  - openjdk7
-  - openjdk8
+
 
 script:
   - jdk_switcher use openjdk7
