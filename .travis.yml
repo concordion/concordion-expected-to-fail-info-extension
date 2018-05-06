@@ -1,11 +1,8 @@
 language: java
 jdk:
-  - openjdk7
-  - openjdk8
+  - oraclejdk8
 
 script:
-  - jdk_switcher use openjdk7
-  - ./gradlew clean check
   - jdk_switcher use openjdk8
   - ./gradlew clean check
 
