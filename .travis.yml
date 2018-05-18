@@ -1,12 +1,13 @@
 language: java
 jdk:
+  - oraclejdk9
   - oraclejdk8
+  - openjdk7
 
 before_install:
  - chmod +x gradlew
 
 script:
-  - jdk_switcher use openjdk8
   - ./gradlew clean check
 
 before_cache:
