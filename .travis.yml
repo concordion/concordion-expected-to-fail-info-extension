@@ -9,7 +9,7 @@ before_install:
  - chmod +x gradlew
 
 script:
-  - ./gradlew clean check
+  - ./gradlew clean javadoc check
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
