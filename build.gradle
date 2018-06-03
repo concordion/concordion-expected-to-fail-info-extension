@@ -7,6 +7,9 @@ apply from: "https://raw.githubusercontent.com/concordion/concordion-extension-b
 apply plugin: "java"
 apply plugin: "idea"
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 wrapper {
     gradleVersion = "4.2.1"
 }
@@ -15,24 +18,3 @@ repositories {
     mavenCentral()
 }
 
-/*dependencies {
-    compile 'org.concordion:concordion:2.1.2'
-    testCompile 'org.concordion:concordion:2.1.2:tests'
-}*/
-
-/*
-githubPages {
-    repoUri = 'https://github.com/concordion/concordion-expected-to-fail-info-extension.git'
-    pages {
-        from 'docs'
-
-        from ('build/reports/spec/') {
-            into 'spec'
-        }
-
-        from ('build/docs/javadoc/') {
-            into 'api'
-        }
-    }
-}
-*/

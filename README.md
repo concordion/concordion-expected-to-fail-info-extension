@@ -6,8 +6,8 @@ The [demo project](https://github.com/concordion/concordion-expected-to-fail-inf
 
 ## Introduction
 
-This extension was brought about by the need to have some way of displaying on the concordion storyboard, why a particular test wask marked as expected to fail. This enabled the user toknow why exactly a test was so marked and other information could also be added such as date by which it was expected to be resolved and who to communicate with in the team with regards to that failing feature if further information was required.
+This extension was brought about by a need to display why a particular test was marked as "expected to fail" on the concordion storyboard. This extension enables the user to know exactly why a test was so marked. Other information could also be added such as date by which it was expected to be resolved and who to communicate with in the team with regards to that failing feature if further information was required.
 
 ## Acknowledgements
 
-This extension was originally developed as an extension to the cubano framework.
+This extension was originally developed as an extension to the [cubano](https://github.com/concordion/cubano) framework.
