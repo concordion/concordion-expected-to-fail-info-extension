@@ -32,12 +32,12 @@ import org.concordion.api.listener.ExampleListener;
 public class ExpectedToFailInfoExtension implements ConcordionExtension, ExampleListener {
 
     private String STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
-    private final String TEXT_SIZE = "h3";
+    private String EXPECTED_TO_FAIL_MESSAGE_SIZE = "h3";
 
     private final String ORIGINAL_TEXT = "This example has been marked as EXPECTED_TO_FAIL";
 
-    private static final String NOTE = "Note";
-    private static final String REASON = "Reason";
+    private String NOTE = "Note";
+    private String REASON = "Reason";
 
 
     @Override
@@ -74,12 +74,33 @@ public class ExpectedToFailInfoExtension implements ConcordionExtension, Example
         }
     }
 
-    public void setStyle(String style) {
+    public ExpectedToFailInfoExtension setStyle(String style) {
         this.STYLE = style;
+        return this;
+    }
+
+    /**
+     * Takes a string value to set as the html tag for the message (refer to default for baseline).
+     * @param headerElementSize
+     * @return
+     */
+    public ExpectedToFailInfoExtension setHeaderElementSize(String headerElementSize) {
+        this.EXPECTED_TO_FAIL_MESSAGE_SIZE = headerElementSize;
+        return this;
+    }
+
+    public ExpectedToFailInfoExtension setNoteMessage(String newNoteMessage) {
+        this.NOTE = newNoteMessage;
+        return this;
+    }
+
+    public ExpectedToFailInfoExtension setReasonMessage(String newReasonMessage) {
+        this.REASON = newReasonMessage;
+        return this;
     }
 
     private Element createANewMessage(String message, String className) {
-        Element originalExpectedToFailNote = new Element(TEXT_SIZE);
+        Element originalExpectedToFailNote = new Element(EXPECTED_TO_FAIL_MESSAGE_SIZE);
 
         originalExpectedToFailNote.appendText(message);
         originalExpectedToFailNote.addStyleClass(className);
