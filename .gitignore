@@ -25,3 +25,16 @@ hs_err_pid*
 *.ipr
 *.iws
 .idea
+
+# Gradle files
+.gradle
+
+# VS Code
+.vscode/
+.project
+.classpath
+.settings/
+
+bin/
+build/
+out/
