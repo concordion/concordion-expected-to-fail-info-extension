@@ -1,20 +1,14 @@
-// Luke Pearson
-// 27-03-2018
+apply from: "https://raw.githubusercontent.com/concordion/concordion-extension-build/master/extension-build.gradle"
 
 description = "An extension to concordion to highlight expected to fail information on living documentation"
 
-apply from: "https://raw.githubusercontent.com/concordion/concordion-extension-build/master/extension-build.gradle"
-apply plugin: "java"
-apply plugin: "idea"
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-wrapper {
-    gradleVersion = "4.2.1"
+ext {
+    developers = {
+        developer {
+            id 'LukeSP'
+            name 'Luke Pearson'
+            roles { role 'Project owner' }
+        }
+    }
+    inceptionYear = '2018'   
 }
-
-repositories {
-    mavenCentral()
-}
-
