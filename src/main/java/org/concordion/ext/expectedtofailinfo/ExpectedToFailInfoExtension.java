@@ -31,10 +31,13 @@ import org.concordion.api.listener.ExampleListener;
  */
 public class ExpectedToFailInfoExtension implements ConcordionExtension, ExampleListener {
 
+    public static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
     private String STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
     private String EXPECTED_TO_FAIL_MESSAGE_SIZE = "h3";
 
-    private final String ORIGINAL_TEXT = "This example has been marked as EXPECTED_TO_FAIL";
+    private final String EXPECTED_TO_FAIL_TEXT = "This example has been marked as - EXPECTED TO FAIL";
+    private final String IGNORED_TEXT = "This example has been marked as - IGNORED";
+    private final String UNIMPLEMENTED_TEXT = "This example has been marked as - UNIMPLEMENTED";
 
     private String NOTE = "Note";
     private String REASON = "Reason";
@@ -50,25 +53,26 @@ public class ExpectedToFailInfoExtension implements ConcordionExtension, Example
 
     @Override
     public void afterExample(ExampleEvent event) {
-        String exampleName = event.getExampleName();
+        String specStatusReason = event.getExampleName();
         Element body = event.getElement().getRootElement().getFirstChildElement("body");
 
         if (body != null) {
             Element[] divs = body.getChildElements("div");
 
             for (Element div : divs) {
-                String concordionStatusAttribute = div.getAttributeValue("status", "http://www.concordion.org/2007/concordion");
-                String concordionExampleAttribute = div.getAttributeValue("example", "http://www.concordion.org/2007/concordion");
+                String concordionStatusAttribute = div.getAttributeValue("status", NAMESPACE_URI);
+                String concordionExampleAttribute = div.getAttributeValue("example", NAMESPACE_URI);
 
-                if (concordionStatusAttribute != null && concordionExampleAttribute != null &&
-                        concordionStatusAttribute.equalsIgnoreCase("expectedToFail") && concordionExampleAttribute.equals(exampleName)) {
+                // TODO: LukeSP - Add in support for additional 'Reason' and 'Note' for the 'Ignored' and 'Unimplemented' statuses
+                if (concordionStatusAttribute != null && concordionExampleAttribute != null) {
+                    if (concordionStatusAttribute.equalsIgnoreCase("expectedToFail") && concordionExampleAttribute.equals(specStatusReason)) {
+                        Element failingDiv = div.getFirstChildElement("p");
 
-                    Element failingDiv = div.getFirstChildElement("p");
+                        failingDiv.appendSister(newMessage(REASON + ": " + specStatusReason, REASON));
+                        failingDiv.appendSister(newMessage(NOTE + ": " + EXPECTED_TO_FAIL_TEXT, NOTE));
 
-                    failingDiv.appendSister(createANewMessage(REASON + ": " + exampleName, REASON));
-                    failingDiv.appendSister(createANewMessage(NOTE + ": " + ORIGINAL_TEXT, NOTE));
-
-                    div.removeChild(div.getFirstChildElement("p"));
+                        div.removeChild(div.getFirstChildElement("p"));
+                    }
                 }
             }
         }
@@ -99,7 +103,7 @@ public class ExpectedToFailInfoExtension implements ConcordionExtension, Example
         return this;
     }
 
-    private Element createANewMessage(String message, String className) {
+    private Element newMessage(String message, String className) {
         Element originalExpectedToFailNote = new Element(EXPECTED_TO_FAIL_MESSAGE_SIZE);
 
         originalExpectedToFailNote.appendText(message);
