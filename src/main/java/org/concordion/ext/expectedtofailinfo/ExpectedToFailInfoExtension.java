@@ -3,8 +3,8 @@ package org.concordion.ext.expectedtofailinfo;
 import org.concordion.api.Element;
 import org.concordion.api.extension.ConcordionExtender;
 import org.concordion.api.extension.ConcordionExtension;
-import org.concordion.api.listener.ExampleEvent;
-import org.concordion.api.listener.ExampleListener;
+import org.concordion.api.listener.SpecificationProcessingEvent;
+import org.concordion.api.listener.SpecificationProcessingListener;
 
 /**
  * Displays the Note and a Reason in the corresponding specification/markdown,
@@ -29,7 +29,7 @@ import org.concordion.api.listener.ExampleListener;
  * @author Luke Pearson
  *
  */
-public class ExpectedToFailInfoExtension implements ConcordionExtension, ExampleListener {
+public class ExpectedToFailInfoExtension implements ConcordionExtension, SpecificationProcessingListener {
 
     public static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
     private String STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
@@ -46,36 +46,6 @@ public class ExpectedToFailInfoExtension implements ConcordionExtension, Example
     @Override
     public void addTo(ConcordionExtender concordionExtender) {
         concordionExtender.withExampleListener(this);
-    }
-
-    @Override
-    public void beforeExample(ExampleEvent event) {}
-
-    @Override
-    public void afterExample(ExampleEvent event) {
-        String specStatusReason = event.getExampleName();
-        Element body = event.getElement().getRootElement().getFirstChildElement("body");
-
-        if (body != null) {
-            Element[] divs = body.getChildElements("div");
-
-            for (Element div : divs) {
-                String concordionStatusAttribute = div.getAttributeValue("status", NAMESPACE_URI);
-                String concordionExampleAttribute = div.getAttributeValue("example", NAMESPACE_URI);
-
-                // TODO: LukeSP - Add in support for additional 'Reason' and 'Note' for the 'Ignored' and 'Unimplemented' statuses
-                if (concordionStatusAttribute != null && concordionExampleAttribute != null) {
-                    if (concordionStatusAttribute.equalsIgnoreCase("expectedToFail") && concordionExampleAttribute.equals(specStatusReason)) {
-                        Element failingDiv = div.getFirstChildElement("p");
-
-                        failingDiv.appendSister(newMessage(REASON + ": " + specStatusReason, REASON));
-                        failingDiv.appendSister(newMessage(NOTE + ": " + EXPECTED_TO_FAIL_TEXT, NOTE));
-
-                        div.removeChild(div.getFirstChildElement("p"));
-                    }
-                }
-            }
-        }
     }
 
     public ExpectedToFailInfoExtension setStyle(String style) {
@@ -113,4 +83,37 @@ public class ExpectedToFailInfoExtension implements ConcordionExtension, Example
         return originalExpectedToFailNote;
     }
 
+    @Override
+    public void beforeProcessingSpecification(SpecificationProcessingEvent event) {
+
+    }
+
+    @Override
+    public void afterProcessingSpecification(SpecificationProcessingEvent event) {
+        //TODO fix specStatusReason
+        String specStatusReason = event.getExampleName();
+        Element body = event.getRootElement().getFirstChildElement("body");
+
+        if (body != null) {
+            Element[] divs = body.getChildElements("div");
+
+            for (Element div : divs) {
+                String concordionStatusAttribute = div.getAttributeValue("status", NAMESPACE_URI);
+                String concordionExampleAttribute = div.getAttributeValue("example", NAMESPACE_URI);
+
+                // TODO: LukeSP - Add in support for additional 'Reason' and 'Note' for the 'Ignored' and 'Unimplemented' statuses
+                if (concordionStatusAttribute != null && concordionExampleAttribute != null) {
+                    if (concordionStatusAttribute.equalsIgnoreCase("expectedToFail") && concordionExampleAttribute.equals(specStatusReason)) {
+                        Element failingDiv = div.getFirstChildElement("p");
+
+                        failingDiv.appendSister(newMessage(REASON + ": " + specStatusReason, REASON));
+                        failingDiv.appendSister(newMessage(NOTE + ": " + EXPECTED_TO_FAIL_TEXT, NOTE));
+
+                        div.removeChild(div.getFirstChildElement("p"));
+                    }
+                }
+            }
+        }
+
+    }
 }
