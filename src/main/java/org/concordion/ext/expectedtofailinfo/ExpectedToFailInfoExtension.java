@@ -26,94 +26,113 @@ import org.concordion.api.listener.SpecificationProcessingListener;
  * <li>Note: resolves to 'This example has been marked as EXPECTED_TO_FAIL'</li>
  * <li>Reason: Based on the sample usage above, would resolve to 'Reason my specification is failing'</li>
  * </ul>
+ * <p></p>
+ * This will be the case for the ignored and unimplemented statuses also. Please see the demo of the is project for more examples.
+ *
  * @author Luke Pearson
  *
  */
-public class ExpectedToFailInfoExtension implements ConcordionExtension, SpecificationProcessingListener {
+public class ExpectedToFailInfoExtension implements SpecificationProcessingListener, ConcordionExtension {
 
-    public static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
+    private static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
     private String STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
-    private String EXPECTED_TO_FAIL_MESSAGE_SIZE = "h3";
+    private String MESSAGE_SIZE = "h3";
 
-    private final String EXPECTED_TO_FAIL_TEXT = "This example has been marked as - EXPECTED TO FAIL";
-    private final String IGNORED_TEXT = "This example has been marked as - IGNORED";
-    private final String UNIMPLEMENTED_TEXT = "This example has been marked as - UNIMPLEMENTED";
-
+    private String EXPECTED_TO_FAIL_TEXT = "This example has been marked as - EXPECTED TO FAIL";
+    private String IGNORED_TEXT = "This example has been marked as - IGNORED";
+    private String UNIMPLEMENTED_TEXT = "This example has been marked as - UNIMPLEMENTED";
     private String NOTE = "Note";
     private String REASON = "Reason";
 
-
-    @Override
-    public void addTo(ConcordionExtender concordionExtender) {
-        concordionExtender.withExampleListener(this);
-    }
 
     public ExpectedToFailInfoExtension setStyle(String style) {
         this.STYLE = style;
         return this;
     }
 
-    /**
-     * Takes a string value to set as the html tag for the message (refer to default for baseline).
-     * @param headerElementSize
-     * @return
-     */
-    public ExpectedToFailInfoExtension setHeaderElementSize(String headerElementSize) {
-        this.EXPECTED_TO_FAIL_MESSAGE_SIZE = headerElementSize;
+    public ExpectedToFailInfoExtension setHeaderElementSize(String value) {
+        this.MESSAGE_SIZE = value;
         return this;
     }
 
-    public ExpectedToFailInfoExtension setNoteMessage(String newNoteMessage) {
-        this.NOTE = newNoteMessage;
+    public ExpectedToFailInfoExtension setNoteMessage(String value) {
+        this.NOTE = value;
         return this;
     }
 
-    public ExpectedToFailInfoExtension setReasonMessage(String newReasonMessage) {
-        this.REASON = newReasonMessage;
+    public ExpectedToFailInfoExtension setReasonMessage(String value) {
+        this.REASON = value;
         return this;
     }
 
-    private Element newMessage(String message, String className) {
-        Element originalExpectedToFailNote = new Element(EXPECTED_TO_FAIL_MESSAGE_SIZE);
+    public ExpectedToFailInfoExtension setExpectedToFailTest(String value) {
+        this.EXPECTED_TO_FAIL_TEXT = value;
+        return this;
+    }
 
-        originalExpectedToFailNote.appendText(message);
-        originalExpectedToFailNote.addStyleClass(className);
-        originalExpectedToFailNote.addAttribute("style", STYLE);
+    public ExpectedToFailInfoExtension setIgnoredText(String value) {
+        this.IGNORED_TEXT = value;
+        return this;
+    }
 
-        return originalExpectedToFailNote;
+    public ExpectedToFailInfoExtension setUnimplementedText(String value) {
+        this.UNIMPLEMENTED_TEXT = value;
+        return this;
     }
 
     @Override
-    public void beforeProcessingSpecification(SpecificationProcessingEvent event) {
-
+    public void addTo(ConcordionExtender concordionExtender) {
+        concordionExtender.withSpecificationProcessingListener(this);
     }
+
+    @Override
+    public void beforeProcessingSpecification(SpecificationProcessingEvent event) {}
 
     @Override
     public void afterProcessingSpecification(SpecificationProcessingEvent event) {
-        //TODO fix specStatusReason
-        String specStatusReason = event.getExampleName();
         Element body = event.getRootElement().getFirstChildElement("body");
 
         if (body != null) {
             Element[] divs = body.getChildElements("div");
 
             for (Element div : divs) {
-                String concordionStatusAttribute = div.getAttributeValue("status", NAMESPACE_URI);
-                String concordionExampleAttribute = div.getAttributeValue("example", NAMESPACE_URI);
+                String status = div.getAttributeValue("status", NAMESPACE_URI);
+                String statusReason = div.getAttributeValue("example", NAMESPACE_URI);
 
-                // TODO: LukeSP - Add in support for additional 'Reason' and 'Note' for the 'Ignored' and 'Unimplemented' statuses
-                if (concordionStatusAttribute != null && concordionExampleAttribute != null) {
-                    if (concordionStatusAttribute.equalsIgnoreCase("expectedToFail") && concordionExampleAttribute.equals(specStatusReason)) {
-                        Element failingDiv = div.getFirstChildElement("p");
+                if (status != null && statusReason != null) {
+                    Element e = div.getFirstChildElement("p");
 
-                        failingDiv.appendSister(newMessage(REASON + ": " + specStatusReason, REASON));
-                        failingDiv.appendSister(newMessage(NOTE + ": " + EXPECTED_TO_FAIL_TEXT, NOTE));
-
-                        div.removeChild(div.getFirstChildElement("p"));
+                    switch(status.toLowerCase()) {
+                        case "expectedtofail":
+                            e.appendSister(newMessage(REASON, REASON + ": " + statusReason));
+                            e.appendSister(newMessage(NOTE, NOTE + ": " + EXPECTED_TO_FAIL_TEXT));
+                            break;
+                        case "ignored":
+                            e.appendSister(newMessage(REASON, REASON + ": " + statusReason));
+                            e.appendSister(newMessage(NOTE, NOTE + ": " + IGNORED_TEXT));
+                            break;
+                        case "unimplemented":
+                            e.appendSister(newMessage(REASON, REASON + ": " + statusReason));
+                            e.appendSister(newMessage(NOTE, NOTE + ": " + UNIMPLEMENTED_TEXT));
+                            break;
+                        default:
                     }
+
+                    div.removeChild(div.getFirstChildElement("p"));
                 }
             }
         }
-
     }
+
+    private Element newMessage(String styleClass, String message) {
+        Element originalExpectedToFailNote = new Element(MESSAGE_SIZE);
+        originalExpectedToFailNote.appendText(message);
+        originalExpectedToFailNote.addStyleClass(styleClass);
+        originalExpectedToFailNote.addAttribute("style", STYLE);
+
+        return originalExpectedToFailNote;
+    }
+
 }
+
+
