@@ -7,8 +7,8 @@ import org.concordion.api.listener.SpecificationProcessingEvent;
 import org.concordion.api.listener.SpecificationProcessingListener;
 
 /**
- * Displays the Note and a Reason in the corresponding specification/markdown,
- * when the annotation expectedToFail is used.
+ * Displays a message containing a Note and a Reason in the corresponding output specification
+ * when an example is annotated with a status modifier with additional reason text.
  *
  * <p></p>
  * Sample usage:
@@ -27,7 +27,12 @@ import org.concordion.api.listener.SpecificationProcessingListener;
  * <li>Reason: Based on the sample usage above, would resolve to 'Reason my specification is failing'</li>
  * </ul>
  * <p></p>
- * This will be the case for the ignored and unimplemented statuses also. Please see the demo of the is project for more examples.
+ * This can be applied to the <code>expectedToFail</code>, <code>ignored</code> and <code>unimplemented</code>
+ * status modifiers.
+ * <p></p>
+ * The text for each part of the message can be overridden, as well as the message size and style.
+ * <p></p>
+ * Please see the demo of this project for more examples.
  *
  * @author Luke Pearson
  *
@@ -35,48 +40,48 @@ import org.concordion.api.listener.SpecificationProcessingListener;
 public class ExpectedToFailInfoExtension implements SpecificationProcessingListener, ConcordionExtension {
 
     private static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
-    private String STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
-    private String MESSAGE_SIZE = "h3";
+    private String style = "font-weight: normal; text-decoration: none; color: #bb5050;";
+    private String messageSize = "h3";
 
-    private String EXPECTED_TO_FAIL_TEXT = "This example has been marked as - EXPECTED TO FAIL";
-    private String IGNORED_TEXT = "This example has been marked as - IGNORED";
-    private String UNIMPLEMENTED_TEXT = "This example has been marked as - UNIMPLEMENTED";
-    private String NOTE = "Note";
-    private String REASON = "Reason";
+    private String expectedToFailText = "This example has been marked as EXPECTED TO FAIL";
+    private String ignoredText = "This example has been marked as IGNORED";
+    private String unimplementedText = "This example has been marked as UNIMPLEMENTED";
+    private String note = "Note";
+    private String reason = "Reason";
 
 
     public ExpectedToFailInfoExtension setStyle(String style) {
-        this.STYLE = style;
+        this.style = style;
         return this;
     }
 
     public ExpectedToFailInfoExtension setHeaderElementSize(String value) {
-        this.MESSAGE_SIZE = value;
+        this.messageSize = value;
         return this;
     }
 
     public ExpectedToFailInfoExtension setNoteMessage(String value) {
-        this.NOTE = value;
+        this.note = value;
         return this;
     }
 
     public ExpectedToFailInfoExtension setReasonMessage(String value) {
-        this.REASON = value;
+        this.reason = value;
         return this;
     }
 
     public ExpectedToFailInfoExtension setExpectedToFailTest(String value) {
-        this.EXPECTED_TO_FAIL_TEXT = value;
+        this.expectedToFailText = value;
         return this;
     }
 
     public ExpectedToFailInfoExtension setIgnoredText(String value) {
-        this.IGNORED_TEXT = value;
+        this.ignoredText = value;
         return this;
     }
 
     public ExpectedToFailInfoExtension setUnimplementedText(String value) {
-        this.UNIMPLEMENTED_TEXT = value;
+        this.unimplementedText = value;
         return this;
     }
 
@@ -102,18 +107,18 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
                 if (status != null && statusReason != null) {
                     Element e = div.getFirstChildElement("p");
 
-                    switch(status.toLowerCase()) {
+                    switch (status.toLowerCase()) {
                         case "expectedtofail":
-                            e.appendSister(newMessage(REASON, REASON + ": " + statusReason));
-                            e.appendSister(newMessage(NOTE, NOTE + ": " + EXPECTED_TO_FAIL_TEXT));
+                            e.appendSister(newMessage(reason, reason + ": " + statusReason));
+                            e.appendSister(newMessage(note, note + ": " + expectedToFailText));
                             break;
                         case "ignored":
-                            e.appendSister(newMessage(REASON, REASON + ": " + statusReason));
-                            e.appendSister(newMessage(NOTE, NOTE + ": " + IGNORED_TEXT));
+                            e.appendSister(newMessage(reason, reason + ": " + statusReason));
+                            e.appendSister(newMessage(note, note + ": " + ignoredText));
                             break;
                         case "unimplemented":
-                            e.appendSister(newMessage(REASON, REASON + ": " + statusReason));
-                            e.appendSister(newMessage(NOTE, NOTE + ": " + UNIMPLEMENTED_TEXT));
+                            e.appendSister(newMessage(reason, reason + ": " + statusReason));
+                            e.appendSister(newMessage(note, note + ": " + unimplementedText));
                             break;
                         default:
                     }
@@ -125,14 +130,11 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
     }
 
     private Element newMessage(String styleClass, String message) {
-        Element originalExpectedToFailNote = new Element(MESSAGE_SIZE);
-        originalExpectedToFailNote.appendText(message);
-        originalExpectedToFailNote.addStyleClass(styleClass);
-        originalExpectedToFailNote.addAttribute("style", STYLE);
+        Element embellishedStatusNote = new Element(messageSize);
+        embellishedStatusNote.appendText(message);
+        embellishedStatusNote.addStyleClass(styleClass);
+        embellishedStatusNote.addAttribute("style", style);
 
-        return originalExpectedToFailNote;
+        return embellishedStatusNote;
     }
-
 }
-
-
