@@ -6,6 +6,10 @@ import org.concordion.api.extension.ConcordionExtension;
 import org.concordion.api.listener.SpecificationProcessingEvent;
 import org.concordion.api.listener.SpecificationProcessingListener;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Displays a message containing a Note and a Reason in the corresponding output specification
  * when an example is annotated with a status modifier with additional reason text.
@@ -49,6 +53,8 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
     private String note = "Note";
     private String reason = "Reason";
 
+    private static final List<String> ALLOWED_MESSAGE_SIZES = new ArrayList<String>(Arrays.asList("h1","h2","h3","h4","h5","h6"));
+
 
     public ExpectedToFailInfoExtension setStyle(String style) {
         this.style = style;
@@ -56,7 +62,7 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
     }
 
     public ExpectedToFailInfoExtension setHeaderElementSize(String value) {
-        this.messageSize = value;
+        this.messageSize = ALLOWED_MESSAGE_SIZES.contains(value.toLowerCase())?value:null;
         return this;
     }
 
@@ -137,4 +143,5 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
 
         return embellishedStatusNote;
     }
+
 }
