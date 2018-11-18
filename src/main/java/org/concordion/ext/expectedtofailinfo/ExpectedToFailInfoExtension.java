@@ -53,7 +53,7 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
     private String note = "Note";
     private String reason = "Reason";
 
-    private static final List<String> ALLOWED_MESSAGE_SIZES = new ArrayList<String>(Arrays.asList("h1","h2","h3","h4","h5","h6"));
+    private static final List<String> ALLOWED_MESSAGE_SIZES = new ArrayList<>(Arrays.asList("h1","h2","h3","h4","h5","h6"));
 
 
     public ExpectedToFailInfoExtension setStyle(String style) {
@@ -113,7 +113,7 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
                 if (status != null && statusReason != null) {
                     Element e = div.getFirstChildElement("p");
 
-                    switch (status.toLowerCase()) {
+                    switch (status.toLowerCase().trim()) {
                         case "expectedtofail":
                             e.appendSister(newMessage(reason, reason + ": " + statusReason));
                             e.appendSister(newMessage(note, note + ": " + expectedToFailText));
