@@ -1,14 +1,14 @@
 package org.concordion.ext.specification;
 
 import org.concordion.api.extension.Extensions;
-import org.concordion.ext.expectedtofailinfo.ExpectedToFailInfoExtension;
+import org.concordion.ext.statusinfo.StatusInfoExtension;
 import org.concordion.integration.junit4.ConcordionRunner;
 import org.junit.runner.RunWith;
 
 
 @RunWith(ConcordionRunner.class)
-@Extensions({ExpectedToFailInfoExtension.class})
-public class WithExpectedToFailInfoExtension {
+@Extensions({StatusInfoExtension.class})
+public class StatusInfoExtensionTest {
 
     private int totalAmount = 0;
     private int totalSpent = 0;

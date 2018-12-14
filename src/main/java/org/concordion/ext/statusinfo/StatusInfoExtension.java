@@ -1,4 +1,4 @@
-package org.concordion.ext.expectedtofailinfo;
+package org.concordion.ext.statusinfo;
 
 import org.concordion.api.Element;
 import org.concordion.api.extension.ConcordionExtender;
@@ -19,10 +19,14 @@ import java.util.List;
  * <p></p>
  * <pre>
  * In a Fixture class annotate the class with:
- * \@Extensions({ ExpectedToFailInfoExtension.class })
+ * \@Extensions({ StatusInfoExtension.class })
  *
  * To a specification add:
  * ## [My Specification Name](- "Reason my specification is failing c:status=expectedToFail")
+ * Or
+ * ## [My Specification Name](- "Reason my specification is ignored c:status=ignored")
+ * Or
+ * ## [My Specification Name](- "Reason my specification is unimplemented c:status=unimplemented")
  * </pre>
  * <p></p>
  * In the completed specification:
@@ -41,53 +45,53 @@ import java.util.List;
  * @author Luke Pearson
  *
  */
-public class ExpectedToFailInfoExtension implements SpecificationProcessingListener, ConcordionExtension {
+public class StatusInfoExtension implements SpecificationProcessingListener, ConcordionExtension {
 
     private static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
     private String style = "font-weight: normal; text-decoration: none; color: #bb5050;";
-    private String messageSize = "h3";
+    private String messageSize = "h5";
 
-    private String expectedToFailText = "This example has been marked as EXPECTED TO FAIL";
-    private String ignoredText = "This example has been marked as IGNORED";
-    private String unimplementedText = "This example has been marked as UNIMPLEMENTED";
-    private String note = "Note";
-    private String reason = "Reason";
+    private String expectedToFailTitleText = "This example has been marked as EXPECTED TO FAIL";
+    private String ignoredTitleText = "This example has been marked as IGNORED";
+    private String unimplementedTitleText = "This example has been marked as UNIMPLEMENTED";
+    private String titleTextPrefix = "";
+    private String reasonPrefix = "Reason: ";
 
     private static final List<String> ALLOWED_MESSAGE_SIZES = new ArrayList<>(Arrays.asList("h1","h2","h3","h4","h5","h6"));
 
 
-    public ExpectedToFailInfoExtension setStyle(String style) {
+    public StatusInfoExtension setStyle(String style) {
         this.style = style;
         return this;
     }
 
-    public ExpectedToFailInfoExtension setHeaderElementSize(String value) {
+    public StatusInfoExtension setHeaderElementSize(String value) {
         this.messageSize = ALLOWED_MESSAGE_SIZES.contains(value.toLowerCase())?value:null;
         return this;
     }
 
-    public ExpectedToFailInfoExtension setNoteMessage(String value) {
-        this.note = value;
+    public StatusInfoExtension setNoteMessage(String value) {
+        this.titleTextPrefix = value;
         return this;
     }
 
-    public ExpectedToFailInfoExtension setReasonMessage(String value) {
-        this.reason = value;
+    public StatusInfoExtension setReasonPrefixMessage(String value) {
+        this.reasonPrefix = value;
         return this;
     }
 
-    public ExpectedToFailInfoExtension setExpectedToFailTest(String value) {
-        this.expectedToFailText = value;
+    public StatusInfoExtension setExpectedToFailTest(String value) {
+        this.expectedToFailTitleText = value;
         return this;
     }
 
-    public ExpectedToFailInfoExtension setIgnoredText(String value) {
-        this.ignoredText = value;
+    public StatusInfoExtension setIgnoredTitleText(String value) {
+        this.ignoredTitleText = value;
         return this;
     }
 
-    public ExpectedToFailInfoExtension setUnimplementedText(String value) {
-        this.unimplementedText = value;
+    public StatusInfoExtension setUnimplementedTitleText(String value) {
+        this.unimplementedTitleText = value;
         return this;
     }
 
@@ -108,23 +112,25 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
 
             for (Element div : divs) {
                 String status = div.getAttributeValue("status", NAMESPACE_URI);
-                String statusReason = div.getAttributeValue("example", NAMESPACE_URI);
+                String statusText = div.getAttributeValue("example", NAMESPACE_URI);
 
-                if (status != null && statusReason != null) {
+                if (status != null && statusText != null) {
                     Element e = div.getFirstChildElement("p");
 
                     switch (status.toLowerCase().trim()) {
                         case "expectedtofail":
-                            e.appendSister(newMessage(reason, reason + ": " + statusReason));
-                            e.appendSister(newMessage(note, note + ": " + expectedToFailText));
+                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
+                            e.appendSister(
+                                    newMessage(titleTextPrefix, titleTextPrefix + expectedToFailTitleText));
                             break;
                         case "ignored":
-                            e.appendSister(newMessage(reason, reason + ": " + statusReason));
-                            e.appendSister(newMessage(note, note + ": " + ignoredText));
+                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
+                            e.appendSister(newMessage(titleTextPrefix, titleTextPrefix + ignoredTitleText));
                             break;
                         case "unimplemented":
-                            e.appendSister(newMessage(reason, reason + ": " + statusReason));
-                            e.appendSister(newMessage(note, note + ": " + unimplementedText));
+                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
+                            e.appendSister(
+                                    newMessage(titleTextPrefix, titleTextPrefix + unimplementedTitleText));
                             break;
                         default:
                     }
@@ -136,12 +142,12 @@ public class ExpectedToFailInfoExtension implements SpecificationProcessingListe
     }
 
     private Element newMessage(String styleClass, String message) {
-        Element embellishedStatusNote = new Element(messageSize);
-        embellishedStatusNote.appendText(message);
-        embellishedStatusNote.addStyleClass(styleClass);
-        embellishedStatusNote.addAttribute("style", style);
+        Element statusNote = new Element(messageSize);
+        statusNote.appendText(message);
+        statusNote.addStyleClass(styleClass);
+        statusNote.addAttribute("style", style);
 
-        return embellishedStatusNote;
+        return statusNote;
     }
 
 }
