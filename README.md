@@ -1,6 +1,6 @@
 # concordion-status-info-extension
 
-This [Concordion](www.concordion.org) extension displays a Note and a Reason in the corresponding specification, when the annotations ignored, unimplemented or expectedToFail are used.
+This [Concordion](https://concordion.org/) extension displays a Note and a Reason in the  output, when the `status`  of specific examples in a specification is [set as](https://concordion.org/instrumenting/java/markdown/#implementation-status) `Ignored`, `Unimplemented` or `ExpectedToFail`.
 
 The [demo project](https://github.com/concordion/concordion-status-info-extension-demo) demonstrates this extension.
 
