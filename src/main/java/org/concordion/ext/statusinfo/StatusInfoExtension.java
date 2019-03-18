@@ -48,6 +48,9 @@ import java.util.List;
 public class StatusInfoExtension implements SpecificationProcessingListener, ConcordionExtension {
 
     private static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
+    private static final List<String> ALLOWED_MESSAGE_SIZES = new ArrayList<>(
+            Arrays.asList("h1","h2","h3","h4","h5","h6"));
+
     private String style = "font-weight: normal; text-decoration: none; color: #bb5050;";
     private String messageSize = "h5";
 
@@ -56,8 +59,6 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
     private String unimplementedTitleText = "This example has been marked as UNIMPLEMENTED";
     private String titleTextPrefix = "";
     private String reasonPrefix = "Reason: ";
-
-    private static final List<String> ALLOWED_MESSAGE_SIZES = new ArrayList<>(Arrays.asList("h1","h2","h3","h4","h5","h6"));
 
 
     public StatusInfoExtension setStyle(String style) {
@@ -116,6 +117,7 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
 
                 if (exampleStatusIsIgnoredOrUnimplementedOrExpectedToFail(status, statusText)) {
                     setExampleStatus(example, status, statusText);
+                    removeOriginalStatusElement(example);
                 }
             }
         }
@@ -125,41 +127,38 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
         return body.getChildElements("div");
     }
 
-    private void setExampleStatus(Element div, String status, String statusText) {
-        Element exampleStatus = getExampleStatus(div);
+    private void setExampleStatus(Element example, String status, String statusText) {
+        Element originalExampleStatus = originalExampleStatus(example);
 
         switch (status.toLowerCase().trim()) {
             case "expectedtofail":
-                setStatus(statusText, exampleStatus, expectedToFailTitleText);
+                setNewStatusTextWithReason(originalExampleStatus, statusText, expectedToFailTitleText);
                 break;
             case "ignored":
-                setStatus(statusText, exampleStatus, ignoredTitleText);
+                setNewStatusTextWithReason(originalExampleStatus, statusText, ignoredTitleText);
                 break;
             case "unimplemented":
-                setStatus(statusText, exampleStatus, unimplementedTitleText);
+                setNewStatusTextWithReason(originalExampleStatus, statusText, unimplementedTitleText);
                 break;
             default:
         }
-
-        removeOriginalElement(div);
     }
 
     private Element getSpecification(SpecificationProcessingEvent event) {
         return event.getRootElement().getFirstChildElement("body");
     }
 
-    private void removeOriginalElement(Element div) {
-        div.removeChild(getExampleStatus(div));
+    private void removeOriginalStatusElement(Element example) {
+        example.removeChild(originalExampleStatus(example));
     }
 
-    private Element getExampleStatus(Element div) {
-        return div.getFirstChildElement("p");
+    private Element originalExampleStatus(Element example) {
+        return example.getFirstChildElement("p");
     }
 
-    private void setStatus(String statusText, Element exampleStatus, String status) {
-        exampleStatus.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
-        exampleStatus.appendSister(
-                newMessage(titleTextPrefix, titleTextPrefix + status));
+    private void setNewStatusTextWithReason(Element originalStatus, String statusText, String status) {
+        originalStatus.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
+        originalStatus.appendSister(newMessage(titleTextPrefix, titleTextPrefix + status));
     }
 
     private boolean exampleStatusIsIgnoredOrUnimplementedOrExpectedToFail(String status, String statusText) {
