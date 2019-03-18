@@ -66,7 +66,7 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
     }
 
     public StatusInfoExtension setHeaderElementSize(String value) {
-        this.messageSize = ALLOWED_MESSAGE_SIZES.contains(value.toLowerCase())?value:null;
+        this.messageSize = ALLOWED_MESSAGE_SIZES.contains(value.toLowerCase())?value:messageSize;
         return this;
     }
 
@@ -105,40 +105,65 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
 
     @Override
     public void afterProcessingSpecification(SpecificationProcessingEvent event) {
-        Element body = event.getRootElement().getFirstChildElement("body");
+        Element body = getSpecification(event);
 
         if (body != null) {
-            Element[] divs = body.getChildElements("div");
+            Element[] examples = getAllExamplesInSpecification(body);
 
-            for (Element div : divs) {
-                String status = div.getAttributeValue("status", NAMESPACE_URI);
-                String statusText = div.getAttributeValue("example", NAMESPACE_URI);
+            for (Element example : examples) {
+                String status = example.getAttributeValue("status", NAMESPACE_URI);
+                String statusText = example.getAttributeValue("example", NAMESPACE_URI);
 
-                if (status != null && statusText != null) {
-                    Element e = div.getFirstChildElement("p");
-
-                    switch (status.toLowerCase().trim()) {
-                        case "expectedtofail":
-                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
-                            e.appendSister(
-                                    newMessage(titleTextPrefix, titleTextPrefix + expectedToFailTitleText));
-                            break;
-                        case "ignored":
-                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
-                            e.appendSister(newMessage(titleTextPrefix, titleTextPrefix + ignoredTitleText));
-                            break;
-                        case "unimplemented":
-                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
-                            e.appendSister(
-                                    newMessage(titleTextPrefix, titleTextPrefix + unimplementedTitleText));
-                            break;
-                        default:
-                    }
-
-                    div.removeChild(div.getFirstChildElement("p"));
+                if (exampleStatusIsIgnoredOrUnimplementedOrExpectedToFail(status, statusText)) {
+                    setExampleStatus(example, status, statusText);
                 }
             }
         }
+    }
+
+    private Element[] getAllExamplesInSpecification(Element body) {
+        return body.getChildElements("div");
+    }
+
+    private void setExampleStatus(Element div, String status, String statusText) {
+        Element exampleStatus = getExampleStatus(div);
+
+        switch (status.toLowerCase().trim()) {
+            case "expectedtofail":
+                setStatus(statusText, exampleStatus, expectedToFailTitleText);
+                break;
+            case "ignored":
+                setStatus(statusText, exampleStatus, ignoredTitleText);
+                break;
+            case "unimplemented":
+                setStatus(statusText, exampleStatus, unimplementedTitleText);
+                break;
+            default:
+        }
+
+        removeOriginalElement(div);
+    }
+
+    private Element getSpecification(SpecificationProcessingEvent event) {
+        return event.getRootElement().getFirstChildElement("body");
+    }
+
+    private void removeOriginalElement(Element div) {
+        div.removeChild(getExampleStatus(div));
+    }
+
+    private Element getExampleStatus(Element div) {
+        return div.getFirstChildElement("p");
+    }
+
+    private void setStatus(String statusText, Element exampleStatus, String status) {
+        exampleStatus.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
+        exampleStatus.appendSister(
+                newMessage(titleTextPrefix, titleTextPrefix + status));
+    }
+
+    private boolean exampleStatusIsIgnoredOrUnimplementedOrExpectedToFail(String status, String statusText) {
+        return status != null && statusText != null;
     }
 
     private Element newMessage(String styleClass, String message) {
