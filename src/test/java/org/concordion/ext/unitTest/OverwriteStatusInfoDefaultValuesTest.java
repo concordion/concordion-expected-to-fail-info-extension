@@ -11,17 +11,16 @@ import org.concordion.ext.statusinfo.StatusInfoExtension;
 import org.junit.Test;
 
 import java.io.*;
-import java.util.Iterator;
 import java.util.Objects;
 
 public class OverwriteStatusInfoDefaultValuesTest {
 
     private SpecificationProcessingEvent event;
 
-    private void initialize() throws IOException, ParsingException {
+    private StatusInfoExtension initialize() throws IOException, ParsingException {
         ClassLoader classLoader = getClass().getClassLoader();
         String getResource = Objects.requireNonNull(
-                classLoader.getResource("org/concordion/ext/unitTest/SpecificationProcessingEvent.xml"))
+                classLoader.getResource("org/concordion/ext/unitTest/SpecificationProcessingEventTestDocument.xml"))
                 .getFile();
 
         File file = new File(getResource);
@@ -32,15 +31,16 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element rootElement = new Element(document.getRootElement());
         this.event = new SpecificationProcessingEvent(resource, rootElement);
+
+        return new StatusInfoExtension();
     }
 
     @Test
-    public void differentNotePrefixTest() throws IOException, ParsingException {
-        initialize();
+    public void notePrefixTest() throws IOException, ParsingException {
+        StatusInfoExtension statusInfoExtension = initialize();
 
         String expectedResult = "This was set from a unit testThis example has been marked as EXPECTED TO FAIL";
 
-        StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .setTitleTextPrefix("This was set from a unit test")
                 .build();
@@ -51,28 +51,26 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         assert event.getRootElement().toXML().contains(expectedResult);
 
-        Element[] elements = event.getRootElement().getFirstChildElement("body").getChildElements("div");
-        boolean expectedTitlePrefixWasApplied = false;
+        Element[] elements = getElements(getBody(event.getRootElement(), "body"), "div");
+
+        assert doCheckForTitlePrefix(expectedResult, elements, false);
+    }
+
+    private boolean doCheckForTitlePrefix(String expectedResult, Element[] elements, boolean expectedTitlePrefixWasApplied) {
         for (Element e :elements) {
-
-            if(e.getFirstChildElement("h5") != null && e.getFirstChildElement("h5").hasChildren()) {
-
-                if(e.getFirstChildElement("h5").getText().equals(expectedResult)){
-                    expectedTitlePrefixWasApplied = true;
-                }
+            if(checkElementExists(e)) {
+                expectedTitlePrefixWasApplied = checkElementHasText(expectedResult, expectedTitlePrefixWasApplied, e);
             }
         }
-
-        assert expectedTitlePrefixWasApplied;
+        return expectedTitlePrefixWasApplied;
     }
 
     @Test
-    public void differentStyleTest() throws IOException, ParsingException {
-        initialize();
+    public void styleTest() throws IOException, ParsingException {
+        StatusInfoExtension statusInfoExtension = initialize();
 
         String expectedResult = "font-weight: normal; text-decoration: none; color: #FFFF00;";
 
-        StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .withStyle(expectedResult)
                 .build();
@@ -83,28 +81,62 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         assert event.getRootElement().toXML().contains(expectedResult);
 
-        Element[] elements = event.getRootElement().getFirstChildElement("body").getChildElements("div");
-        boolean expectedStyleWasApplied = false;
+        Element[] elements = getElements(getBody(event.getRootElement(), "body"), "div");
+
+        assert doCheckForStyle(expectedResult, elements, false);
+    }
+
+    private boolean doCheckForStyle(String expectedResult, Element[] elements, boolean expectedStyleWasApplied) {
         for (Element e :elements) {
-
-            if(e.getFirstChildElement("h5") != null && e.getFirstChildElement("h5").hasChildren()) {
-
-                if(e.getFirstChildElement("h5").getAttributeValue("style").equals(expectedResult)){
-                    expectedStyleWasApplied = true;
-                }
+            if(checkElementExists(e)) {
+                expectedStyleWasApplied = checkElementHasAttribute(expectedResult, expectedStyleWasApplied, e);
             }
         }
-
-        assert expectedStyleWasApplied;
+        return expectedStyleWasApplied;
     }
 
     @Test
-    public void differentReasonPrefixTest() throws IOException, ParsingException {
-        initialize();
+    public void messageSizeTest() throws IOException, ParsingException {
+        StatusInfoExtension statusInfoExtension = initialize();
+
+        String expectedMessageSize = "h1";
+        String note = "New Note: ";
+        String reason = "New Reason: ";
+
+        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
+                .setTitleTextPrefix(note)
+                .setReasonPrefixMessage(reason)
+                .setMessageSize(expectedMessageSize)
+                .build();
+
+        statusInfoExtension.setStatusInfo(statusInfo);
+
+        statusInfoExtension.afterProcessingSpecification(event);
+
+        assert event.getRootElement().toXML().contains(expectedMessageSize);
+
+        Element[] elements = getElements(getBody(event.getRootElement(), "body"), "div");
+        boolean expectedNoteSizeWasApplied = false;
+        boolean expectedReasonSizeWasApplied = false;
+        for (Element e :elements) {
+
+            Element[] children = getElements(e, expectedMessageSize);
+            for (Element c : children) {
+                expectedNoteSizeWasApplied = checkAnExpectedValueWasApplied(c, note, expectedNoteSizeWasApplied);
+                expectedReasonSizeWasApplied = checkAnExpectedValueWasApplied(c, reason, expectedReasonSizeWasApplied);
+            }
+        }
+
+        assert expectedNoteSizeWasApplied;
+        assert expectedReasonSizeWasApplied;
+    }
+
+    @Test
+    public void reasonPrefixTest() throws IOException, ParsingException {
+        StatusInfoExtension statusInfoExtension = initialize();
 
         String expectedResult = "New Reason: ";
 
-        StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .setReasonPrefixMessage(expectedResult)
                 .build();
@@ -115,28 +147,17 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         assert event.getRootElement().toXML().contains(expectedResult);
 
-        Element[] elements = event.getRootElement().getFirstChildElement("body").getChildElements("div");
-        boolean expectedReasonPrefixWasApplied = false;
-        for (Element e :elements) {
+        Element[] elements = getElements(getBody(event.getRootElement(), "body"), "div");
 
-            Element[] children = e.getChildElements("h5");
-            for (Element c : children) {
-                if (c.getText().contains(expectedResult)) {
-                    expectedReasonPrefixWasApplied = true;
-                }
-            }
-        }
-
-        assert expectedReasonPrefixWasApplied;
+        assert doCheckForExpectedValueInChildElement(expectedResult, elements);
     }
 
     @Test
-    public void differentTitleTextPrefixTest() throws IOException, ParsingException {
-        initialize();
+    public void titleTextPrefixTest() throws IOException, ParsingException {
+        StatusInfoExtension statusInfoExtension = initialize();
 
         String expectedResult = "New Note: ";
 
-        StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .setTitleTextPrefix(expectedResult)
                 .build();
@@ -147,68 +168,17 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         assert event.getRootElement().toXML().contains(expectedResult);
 
-        Element[] elements = event.getRootElement().getFirstChildElement("body").getChildElements("div");
-        boolean expectedReasonPrefixWasApplied = false;
-        for (Element e :elements) {
+        Element[] elements = getElements(getBody(event.getRootElement(), "body"), "div");
 
-            Element[] children = e.getChildElements("h5");
-            for (Element c : children) {
-                if (c.getText().contains(expectedResult)) {
-                    expectedReasonPrefixWasApplied = true;
-                }
-            }
-        }
-
-        assert expectedReasonPrefixWasApplied;
+        assert doCheckForExpectedValueInChildElement(expectedResult, elements);
     }
 
     @Test
-    public void differentMessageSizeTest() throws IOException, ParsingException {
-        initialize();
-
-        String expectedMessageSize = "h1";
-
-        StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .setTitleTextPrefix("New Note: ")
-                .setReasonPrefixMessage("New Reason: ")
-                .setMessageSize(expectedMessageSize)
-                .build();
-
-        statusInfoExtension.setStatusInfo(statusInfo);
-
-        statusInfoExtension.afterProcessingSpecification(event);
-
-        assert event.getRootElement().toXML().contains(expectedMessageSize);
-
-        Element[] elements = event.getRootElement().getFirstChildElement("body").getChildElements("div");
-        boolean expectedNoteSizeWasApplied = false;
-        boolean expectedReasonSizeWasApplied = false;
-        for (Element e :elements) {
-
-            Element[] children = e.getChildElements(expectedMessageSize);
-            for (Element c : children) {
-                if (c.getText().contains("New Note: ")) {
-                    expectedNoteSizeWasApplied = true;
-                }
-                if (c.getText().contains("New Reason: ")) {
-                    expectedReasonSizeWasApplied = true;
-                }
-            }
-        }
-
-        assert expectedNoteSizeWasApplied;
-        assert expectedReasonSizeWasApplied;
-    }
-
-    @Test
-    public void differentExpectedToFailTitleTextPrefixTest() throws IOException, ParsingException {
-        initialize();
+    public void expectedToFailTitleTextPrefixTest() throws IOException, ParsingException {
+        StatusInfoExtension statusInfoExtension = initialize();
 
         String expectedResult = "A Unit Test Set this Expected To Fail text";
 
-        StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .setExpectedToFailTitleText(expectedResult)
                 .build();
@@ -219,28 +189,17 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         assert event.getRootElement().toXML().contains(expectedResult);
 
-        Element[] elements = event.getRootElement().getFirstChildElement("body").getChildElements("div");
-        boolean expectedReasonPrefixWasApplied = false;
-        for (Element e :elements) {
+        Element[] elements = getElements(getBody(event.getRootElement(), "body"), "div");
 
-            Element[] children = e.getChildElements("h5");
-            for (Element c : children) {
-                if (c.getText().contains(expectedResult)) {
-                    expectedReasonPrefixWasApplied = true;
-                }
-            }
-        }
-
-        assert expectedReasonPrefixWasApplied;
+        assert doCheckForExpectedValueInChildElement(expectedResult, elements);
     }
 
     @Test
-    public void differentIgnoreTitleTextPrefixTest() throws IOException, ParsingException {
-        initialize();
+    public void ignoreTitleTextPrefixTest() throws IOException, ParsingException {
+        StatusInfoExtension statusInfoExtension = initialize();
 
         String expectedResult = "A Unit Test Set this Ignore text";
 
-        StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .setIgnoredTitleText(expectedResult)
                 .build();
@@ -251,28 +210,17 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         assert event.getRootElement().toXML().contains(expectedResult);
 
-        Element[] elements = event.getRootElement().getFirstChildElement("body").getChildElements("div");
-        boolean expectedReasonPrefixWasApplied = false;
-        for (Element e :elements) {
+        Element[] elements = getElements(getBody(event.getRootElement(), "body"), "div");
 
-            Element[] children = e.getChildElements("h5");
-            for (Element c : children) {
-                if (c.getText().contains(expectedResult)) {
-                    expectedReasonPrefixWasApplied = true;
-                }
-            }
-        }
-
-        assert expectedReasonPrefixWasApplied;
+        assert doCheckForExpectedValueInChildElement(expectedResult, elements);
     }
 
     @Test
-    public void differentUnimplementedTitleTextPrefixTest() throws IOException, ParsingException {
-        initialize();
+    public void unimplementedTitleTextPrefixTest() throws IOException, ParsingException {
+        StatusInfoExtension statusInfoExtension = initialize();
 
         String expectedResult = "A Unit Test Set this Unimplemented text";
 
-        StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .setUnimplementedTitleText(expectedResult)
                 .build();
@@ -283,21 +231,72 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         assert event.getRootElement().toXML().contains(expectedResult);
 
-        Element[] elements = event.getRootElement().getFirstChildElement("body").getChildElements("div");
-        boolean expectedReasonPrefixWasApplied = false;
-        for (Element e :elements) {
+        Element[] elements = getElements(getBody(event.getRootElement(), "body"), "div");
 
-            Element[] children = e.getChildElements("h5");
-            for (Element c : children) {
-                if (c.getText().contains(expectedResult)) {
-                    expectedReasonPrefixWasApplied = true;
-                }
-            }
-        }
-
-        assert expectedReasonPrefixWasApplied;
+        assert doCheckForExpectedValueInElement(expectedResult, elements);
     }
 
+    private boolean doCheckForExpectedValueInElement(String expectedResult, Element[] elements) {
+        boolean result = false;
 
+        for (Element e :elements) {
+            result = searchElementsForChildren(expectedResult, result, e);
+        }
+        return result;
+    }
+
+    private boolean doCheckForExpectedValueInChildElement(String expectedResult, Element[] elements) {
+        boolean result = false;
+
+        for (Element e : elements) {
+
+            Element[] children = getElements(e, "h5");
+            for (Element c : children) {
+                result = checkAnExpectedValueWasApplied(c, expectedResult, result);
+            }
+        }
+        return result;
+    }
+
+    private boolean searchElementsForChildren(String expectedResult, boolean expectedReasonPrefixWasApplied, Element e) {
+        Element[] children = getElements(e, "h5");
+        for (Element c : children) {
+            expectedReasonPrefixWasApplied = checkAnExpectedValueWasApplied(c, expectedResult, expectedReasonPrefixWasApplied);
+        }
+        return expectedReasonPrefixWasApplied;
+    }
+
+    private boolean checkElementHasAttribute(String expectedResult, boolean expectedStyleWasApplied, Element e) {
+        if(getBody(e, "h5").getAttributeValue("style").equals(expectedResult)){
+            expectedStyleWasApplied = true;
+        }
+        return expectedStyleWasApplied;
+    }
+
+    private boolean checkElementHasText(String expectedResult, boolean expectedTitlePrefixWasApplied, Element e) {
+        if(getBody(e,"h5").getText().equals(expectedResult)){
+            expectedTitlePrefixWasApplied = true;
+        }
+        return expectedTitlePrefixWasApplied;
+    }
+
+    private boolean checkAnExpectedValueWasApplied(Element e, String s, boolean alreadyFoundExpected) {
+        if (alreadyFoundExpected){
+            return true;
+        }
+        return e.getText().contains(s);
+    }
+
+    private boolean checkElementExists(Element e) {
+        return getBody(e,"h5") != null && getBody(e,"h5").hasChildren();
+    }
+
+    private Element[] getElements(Element e, String div) {
+        return e.getChildElements(div);
+    }
+
+    private Element getBody(Element e, String name) {
+        return e.getFirstChildElement(name);
+    }
 
 }
