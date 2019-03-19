@@ -8,7 +8,6 @@ import org.concordion.api.Resource;
 import org.concordion.api.listener.SpecificationProcessingEvent;
 import org.concordion.ext.statusinfo.StatusInfo;
 import org.concordion.ext.statusinfo.StatusInfoExtension;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.*;
@@ -20,8 +19,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
     Resource resource;
 
 
-    @Before
-    public void beforeTest() throws IOException, ParsingException {
+    private void initialize() throws IOException, ParsingException {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("org/concordion/ext/unitTest/SpecificationProcessingEvent.xml").getFile());
 
@@ -34,8 +32,9 @@ public class OverwriteStatusInfoDefaultValuesTest {
     }
 
     @Test
-    public void differentNotePrefixTest(){
-        // write the test
+    public void differentNotePrefixTest() throws IOException, ParsingException {
+        initialize();
+
         StatusInfoExtension statusInfoExtension = new StatusInfoExtension();
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .setTitleTextPrefix("This was set from a unit test")
