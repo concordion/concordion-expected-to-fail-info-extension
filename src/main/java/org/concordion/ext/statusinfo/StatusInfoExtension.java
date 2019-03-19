@@ -80,9 +80,6 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
         }
     }
 
-    private void setSomeValueToGetLater() {
-    }
-
     private void setExampleStatus(Element example, String status, String statusText) {
         switch (status.toLowerCase().trim()) {
             case "expectedtofail":
