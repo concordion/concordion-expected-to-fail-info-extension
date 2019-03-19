@@ -60,7 +60,7 @@ public class StatusInfo {
             return this;
         }
 
-        public StatusInfoBuilder setTitleTestPrefix(String value) {
+        public StatusInfoBuilder setTitleTextPrefix(String value) {
             this.titleTextPrefix = value;
             return this;
         }
