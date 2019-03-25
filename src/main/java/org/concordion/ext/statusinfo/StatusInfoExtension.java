@@ -44,6 +44,7 @@ import org.concordion.api.listener.SpecificationProcessingListener;
 public class StatusInfoExtension implements SpecificationProcessingListener, ConcordionExtension {
 
     private static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
+    private static final String SPACE = " ";
 
     private StatusInfo statusInfo = new StatusInfo();
 
@@ -101,10 +102,10 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
         Element originalExampleStatus = originalExampleStatus(example);
 
         originalExampleStatus.appendSister(
-                newMessage(statusInfo.getReasonPrefix(), statusInfo.getReasonPrefix() + statusText));
+                newMessage(statusInfo.getReasonPrefix(), statusInfo.getReasonPrefix() + SPACE + statusText));
 
         originalExampleStatus.appendSister(
-                newMessage(statusInfo.getTitleTextPrefix(), statusInfo.getTitleTextPrefix() + status));
+                newMessage(statusInfo.getTitleTextPrefix(), statusInfo.getTitleTextPrefix() + SPACE + status));
     }
 
     private Element[] getAllExamplesInSpec(Element body) {

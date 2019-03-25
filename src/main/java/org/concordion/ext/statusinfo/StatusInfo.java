@@ -9,7 +9,7 @@ public class StatusInfo {
     private String style = "font-weight: normal; text-decoration: none; color: #bb5050;";
     private String messageSize = "h5";
     private String titleTextPrefix = "";
-    private String reasonPrefix = "Reason: ";
+    private String reasonPrefix = "Reason:";
     private String expectedToFailTitleText = "This example has been marked as EXPECTED TO FAIL";
     private String ignoredTitleText = "This example has been marked as IGNORED";
     private String unimplementedTitleText = "This example has been marked as UNIMPLEMENTED";

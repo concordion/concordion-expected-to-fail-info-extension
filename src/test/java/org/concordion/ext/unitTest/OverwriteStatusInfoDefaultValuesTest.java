@@ -39,7 +39,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
     public void notePrefixTest() throws IOException, ParsingException {
         StatusInfoExtension statusInfoExtension = initialize();
 
-        String expectedResult = "This was set from a unit testThis example has been marked as EXPECTED TO FAIL";
+        String expectedResult = "This was set from a unit test This example has been marked as EXPECTED TO FAIL";
 
         StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
                 .setTitleTextPrefix("This was set from a unit test")
@@ -49,7 +49,11 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         statusInfoExtension.afterProcessingSpecification(event);
 
-        assert event.getRootElement().toXML().contains(expectedResult);
+        try {
+            assert event.getRootElement().toXML().contains(expectedResult);
+        }catch (AssertionError ae){
+            System.out.println(event.getRootElement().toXML());
+        }
 
         Element body = getBody(event.getRootElement(), "body");
         Element[] elements = getElements(body, "div");
