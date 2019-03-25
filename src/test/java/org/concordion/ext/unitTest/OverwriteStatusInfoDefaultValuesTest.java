@@ -8,60 +8,59 @@ import org.concordion.api.Resource;
 import org.concordion.api.listener.SpecificationProcessingEvent;
 import org.concordion.ext.statusinfo.StatusInfo;
 import org.concordion.ext.statusinfo.StatusInfoExtension;
+import org.junit.Before;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Objects;
 
 public class OverwriteStatusInfoDefaultValuesTest {
 
+    private static final String PATH_TO_DOCUMENT = "org/concordion/ext/unitTest/SpecificationProcessingEventTestDocument.xml";
     private SpecificationProcessingEvent event;
+    private StatusInfoExtension statusInfoExtension;
 
-    private StatusInfoExtension initialize() throws IOException, ParsingException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        String getResource = Objects.requireNonNull(
-                classLoader.getResource("org/concordion/ext/unitTest/SpecificationProcessingEventTestDocument.xml"))
-                .getFile();
 
-        File file = new File(getResource);
+    @Before
+    public void initialize() throws IOException, ParsingException {
+        statusInfoExtension = new StatusInfoExtension();
+        event = setSpecificationProcessingEvent(getResourceFile());
+    }
 
+    private SpecificationProcessingEvent setSpecificationProcessingEvent(File file) throws ParsingException, IOException {
         BufferedReader br = new BufferedReader(new FileReader(file));
-        Resource resource = new Resource("/" + file.getPath());
         Document document = new Builder().build(br);
-
         Element rootElement = new Element(document.getRootElement());
-        this.event = new SpecificationProcessingEvent(resource, rootElement);
+        Resource resource = new Resource("/" + file.getPath());
+        return new SpecificationProcessingEvent(resource, rootElement);
+    }
 
-        return new StatusInfoExtension();
+    private File getResourceFile() {
+        return new File(Objects.requireNonNull(
+                getClass().getClassLoader().getResource(PATH_TO_DOCUMENT))
+                .getFile());
     }
 
     @Test
-    public void notePrefixTest() throws IOException, ParsingException {
-        StatusInfoExtension statusInfoExtension = initialize();
-
+    public void notePrefixTest() {
         String expectedResult = "This was set from a unit test This example has been marked as EXPECTED TO FAIL";
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .setTitleTextPrefix("This was set from a unit test")
-                .build();
+        StatusInfo statusInfo = new StatusInfo()
+                .setTitleTextPrefix("This was set from a unit test");
 
         statusInfoExtension.setStatusInfo(statusInfo);
-
         statusInfoExtension.afterProcessingSpecification(event);
 
-        try {
-            assert event.getRootElement().toXML().contains(expectedResult);
-        }catch (AssertionError ae){
-            System.out.println(event.getRootElement().toXML());
-        }
+        Element[] elements = getElements();
 
-        Element body = getBody(event.getRootElement(), "body");
-        Element[] elements = getElements(body, "div");
-
-        assert doCheckForTitlePrefix(expectedResult, elements, false);
+        assert event.getRootElement().toXML().contains(expectedResult);
+        assert doCheckForTitlePrefix(expectedResult, elements);
     }
 
-    private boolean doCheckForTitlePrefix(String expectedResult, Element[] elements, boolean expectedTitlePrefixWasApplied) {
+    private boolean doCheckForTitlePrefix(String expectedResult, Element[] elements) {
+        boolean expectedTitlePrefixWasApplied = false;
         for (Element e :elements) {
             if(checkElementExists(e)) {
                 expectedTitlePrefixWasApplied = checkElementHasText(expectedResult, expectedTitlePrefixWasApplied, e);
@@ -71,28 +70,118 @@ public class OverwriteStatusInfoDefaultValuesTest {
     }
 
     @Test
-    public void styleTest() throws IOException, ParsingException {
-        StatusInfoExtension statusInfoExtension = initialize();
-
+    public void styleTest() {
         String expectedResult = "font-weight: normal; text-decoration: none; color: #FFFF00;";
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .withStyle(expectedResult)
-                .build();
+        StatusInfo statusInfo = new StatusInfo()
+                .withStyle(expectedResult);
 
         statusInfoExtension.setStatusInfo(statusInfo);
-
         statusInfoExtension.afterProcessingSpecification(event);
 
+        Element[] elements = getElements();
+
         assert event.getRootElement().toXML().contains(expectedResult);
-
-        Element body = getBody(event.getRootElement(), "body");
-        Element[] elements = getElements(body, "div");
-
-        assert doCheckForStyle(expectedResult, elements, false);
+        assert doCheckForStyle(expectedResult, elements);
     }
 
-    private boolean doCheckForStyle(String expectedResult, Element[] elements, boolean expectedStyleWasApplied) {
+    @Test
+    public void messageSizeTest() {
+        String expectedMessageSize = "h1";
+        String note = "New Note: ";
+        String reason = "New Reason: ";
+
+        StatusInfo statusInfo = new StatusInfo()
+                .setTitleTextPrefix(note)
+                .setReasonPrefixMessage(reason)
+                .setMessageSize(expectedMessageSize);
+
+        statusInfoExtension.setStatusInfo(statusInfo);
+        statusInfoExtension.afterProcessingSpecification(event);
+
+        Element[] elements = getElements();
+
+        assert event.getRootElement().toXML().contains(expectedMessageSize);
+        assert doCheckForNote(expectedMessageSize, note, elements);
+        assert doCheckForNote(expectedMessageSize, reason, elements);
+    }
+
+    @Test
+    public void reasonPrefixTest() {
+        String expectedResult = "New Reason: ";
+        StatusInfo statusInfo = new StatusInfo()
+                .setReasonPrefixMessage(expectedResult);
+
+        statusInfoExtension.setStatusInfo(statusInfo);
+        statusInfoExtension.afterProcessingSpecification(event);
+
+        Element[] elements = getElements();
+
+        assert event.getRootElement().toXML().contains(expectedResult);
+        assert doCheckForNote("h5", expectedResult, elements);
+    }
+
+    @Test
+    public void titleTextPrefixTest() {
+        String expectedResult = "New Note: ";
+        StatusInfo statusInfo = new StatusInfo()
+                .setTitleTextPrefix(expectedResult);
+
+        statusInfoExtension.setStatusInfo(statusInfo);
+        statusInfoExtension.afterProcessingSpecification(event);
+
+        Element[] elements = getElements();
+
+        assert event.getRootElement().toXML().contains(expectedResult);
+        assert doCheckForNote("h5", expectedResult, elements);
+    }
+
+    @Test
+    public void expectedToFailTitleTextPrefixTest() {
+        String expectedResult = "A Unit Test Set this Expected To Fail text";
+        StatusInfo statusInfo = new StatusInfo()
+                .setExpectedToFailTitleText(expectedResult);
+
+        statusInfoExtension.setStatusInfo(statusInfo);
+        statusInfoExtension.afterProcessingSpecification(event);
+
+        Element[] elements = getElements();
+
+        assert event.getRootElement().toXML().contains(expectedResult);
+        assert doCheckForNote("h5", expectedResult, elements);
+    }
+
+    @Test
+    public void ignoreTitleTextPrefixTest() {
+        String expectedResult = "A Unit Test Set this Ignore text";
+        StatusInfo statusInfo = new StatusInfo()
+                .setIgnoredTitleText(expectedResult);
+
+        statusInfoExtension.setStatusInfo(statusInfo);
+        statusInfoExtension.afterProcessingSpecification(event);
+
+        Element[] elements = getElements();
+
+        assert event.getRootElement().toXML().contains(expectedResult);
+        assert doCheckForNote("h5", expectedResult, elements);
+    }
+
+    @Test
+    public void unimplementedTitleTextPrefixTest() {
+        String expectedResult = "A Unit Test Set this Unimplemented text";
+        StatusInfo statusInfo = new StatusInfo()
+                .setUnimplementedTitleText(expectedResult);
+
+        statusInfoExtension.setStatusInfo(statusInfo);
+        statusInfoExtension.afterProcessingSpecification(event);
+
+        Element[] elements = getElements();
+
+        assert event.getRootElement().toXML().contains(expectedResult);
+        assert doCheckForExpectedValueInElement(expectedResult, elements);
+    }
+
+    private boolean doCheckForStyle(String expectedResult, Element[] elements) {
+        boolean expectedStyleWasApplied = false;
         for (Element e :elements) {
             if(checkElementExists(e)) {
                 expectedStyleWasApplied = checkElementHasAttribute(expectedResult, expectedStyleWasApplied, e);
@@ -101,39 +190,10 @@ public class OverwriteStatusInfoDefaultValuesTest {
         return expectedStyleWasApplied;
     }
 
-    @Test
-    public void messageSizeTest() throws IOException, ParsingException {
-        StatusInfoExtension statusInfoExtension = initialize();
-
-        String expectedMessageSize = "h1";
-        String note = "New Note: ";
-        String reason = "New Reason: ";
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .setTitleTextPrefix(note)
-                .setReasonPrefixMessage(reason)
-                .setMessageSize(expectedMessageSize)
-                .build();
-
-        statusInfoExtension.setStatusInfo(statusInfo);
-
-        statusInfoExtension.afterProcessingSpecification(event);
-
-        assert event.getRootElement().toXML().contains(expectedMessageSize);
-
-        Element body = getBody(event.getRootElement(), "body");
-        Element[] elements = getElements(body, "div");
-
-        assert doCheckForNote(expectedMessageSize, note, elements);
-
-        assert doCheckForNote(expectedMessageSize, reason, elements);
-    }
-
     private boolean doCheckForNote(String expectedMessageSize, String note, Element[] elements) {
         boolean expectedNoteSizeWasApplied = false;
         for (Element e : elements) {
-
-            Element[] children = getElements(e, expectedMessageSize);
+            Element[] children = getChildElementsOf(e, expectedMessageSize);
             for (Element c : children) {
                 expectedNoteSizeWasApplied = checkAnExpectedValueWasApplied(c, note, expectedNoteSizeWasApplied);
             }
@@ -141,119 +201,8 @@ public class OverwriteStatusInfoDefaultValuesTest {
         return expectedNoteSizeWasApplied;
     }
 
-    @Test
-    public void reasonPrefixTest() throws IOException, ParsingException {
-        StatusInfoExtension statusInfoExtension = initialize();
-
-        String expectedResult = "New Reason: ";
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .setReasonPrefixMessage(expectedResult)
-                .build();
-
-        statusInfoExtension.setStatusInfo(statusInfo);
-
-        statusInfoExtension.afterProcessingSpecification(event);
-
-        assert event.getRootElement().toXML().contains(expectedResult);
-
-        Element body = getBody(event.getRootElement(), "body");
-        Element[] elements = getElements(body, "div");
-
-        assert doCheckForNote("h5", expectedResult, elements);
-    }
-
-    @Test
-    public void titleTextPrefixTest() throws IOException, ParsingException {
-        StatusInfoExtension statusInfoExtension = initialize();
-
-        String expectedResult = "New Note: ";
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .setTitleTextPrefix(expectedResult)
-                .build();
-
-        statusInfoExtension.setStatusInfo(statusInfo);
-
-        statusInfoExtension.afterProcessingSpecification(event);
-
-        assert event.getRootElement().toXML().contains(expectedResult);
-
-        Element body = getBody(event.getRootElement(), "body");
-        Element[] elements = getElements(body, "div");
-
-        assert doCheckForNote("h5", expectedResult, elements);
-    }
-
-    @Test
-    public void expectedToFailTitleTextPrefixTest() throws IOException, ParsingException {
-        StatusInfoExtension statusInfoExtension = initialize();
-
-        String expectedResult = "A Unit Test Set this Expected To Fail text";
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .setExpectedToFailTitleText(expectedResult)
-                .build();
-
-        statusInfoExtension.setStatusInfo(statusInfo);
-
-        statusInfoExtension.afterProcessingSpecification(event);
-
-        assert event.getRootElement().toXML().contains(expectedResult);
-
-        Element body = getBody(event.getRootElement(), "body");
-        Element[] elements = getElements(body, "div");
-
-        assert doCheckForNote("h5", expectedResult, elements);
-    }
-
-    @Test
-    public void ignoreTitleTextPrefixTest() throws IOException, ParsingException {
-        StatusInfoExtension statusInfoExtension = initialize();
-
-        String expectedResult = "A Unit Test Set this Ignore text";
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .setIgnoredTitleText(expectedResult)
-                .build();
-
-        statusInfoExtension.setStatusInfo(statusInfo);
-
-        statusInfoExtension.afterProcessingSpecification(event);
-
-        assert event.getRootElement().toXML().contains(expectedResult);
-
-        Element body = getBody(event.getRootElement(), "body");
-        Element[] elements = getElements(body, "div");
-
-        assert doCheckForNote("h5", expectedResult, elements);
-    }
-
-    @Test
-    public void unimplementedTitleTextPrefixTest() throws IOException, ParsingException {
-        StatusInfoExtension statusInfoExtension = initialize();
-
-        String expectedResult = "A Unit Test Set this Unimplemented text";
-
-        StatusInfo statusInfo = new StatusInfo.StatusInfoBuilder()
-                .setUnimplementedTitleText(expectedResult)
-                .build();
-
-        statusInfoExtension.setStatusInfo(statusInfo);
-
-        statusInfoExtension.afterProcessingSpecification(event);
-
-        assert event.getRootElement().toXML().contains(expectedResult);
-
-        Element body = getBody(event.getRootElement(), "body");
-        Element[] elements = getElements(body, "div");
-
-        assert doCheckForExpectedValueInElement(expectedResult, elements);
-    }
-
     private boolean doCheckForExpectedValueInElement(String expectedResult, Element[] elements) {
         boolean result = false;
-
         for (Element e :elements) {
             result = searchElementsForChildren(expectedResult, result, e);
         }
@@ -261,7 +210,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
     }
 
     private boolean searchElementsForChildren(String expectedResult, boolean result, Element e) {
-        Element[] children = getElements(e, "h5");
+        Element[] children = getChildElementsOf(e, "h5");
         for (Element c : children) {
             result = checkAnExpectedValueWasApplied(c, expectedResult, result);
         }
@@ -290,10 +239,15 @@ public class OverwriteStatusInfoDefaultValuesTest {
     }
 
     private boolean checkElementExists(Element e) {
-        return getBody(e,"h5") != null && getBody(e,"h5").hasChildren();
+        return (getBody(e,"h5") != null) && (getBody(e,"h5").hasChildren());
     }
 
-    private Element[] getElements(Element e, String div) {
+    private Element[] getElements() {
+        Element body = getBody(event.getRootElement(), "body");
+        return getChildElementsOf(body, "div");
+    }
+
+    private Element[] getChildElementsOf(Element e, String div) {
         return e.getChildElements(div);
     }
 
