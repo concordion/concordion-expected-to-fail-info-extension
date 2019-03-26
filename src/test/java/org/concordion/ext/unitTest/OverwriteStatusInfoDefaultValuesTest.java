@@ -53,20 +53,10 @@ public class OverwriteStatusInfoDefaultValuesTest {
         statusInfoExtension.setStatusInfo(statusInfo);
         statusInfoExtension.afterProcessingSpecification(event);
 
-        Element[] elements = getElements();
+        Element[] elements = getBodyElements();
 
         assert event.getRootElement().toXML().contains(expectedResult);
         assert doCheckForTitlePrefix(expectedResult, elements);
-    }
-
-    private boolean doCheckForTitlePrefix(String expectedResult, Element[] elements) {
-        boolean expectedTitlePrefixWasApplied = false;
-        for (Element e :elements) {
-            if(checkElementExists(e)) {
-                expectedTitlePrefixWasApplied = checkElementHasText(expectedResult, expectedTitlePrefixWasApplied, e);
-            }
-        }
-        return expectedTitlePrefixWasApplied;
     }
 
     @Test
@@ -78,7 +68,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
         statusInfoExtension.setStatusInfo(statusInfo);
         statusInfoExtension.afterProcessingSpecification(event);
 
-        Element[] elements = getElements();
+        Element[] elements = getBodyElements();
 
         assert event.getRootElement().toXML().contains(expectedResult);
         assert doCheckForStyle(expectedResult, elements);
@@ -98,7 +88,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
         statusInfoExtension.setStatusInfo(statusInfo);
         statusInfoExtension.afterProcessingSpecification(event);
 
-        Element[] elements = getElements();
+        Element[] elements = getBodyElements();
 
         assert event.getRootElement().toXML().contains(expectedMessageSize);
         assert doCheckForNote(expectedMessageSize, note, elements);
@@ -114,7 +104,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
         statusInfoExtension.setStatusInfo(statusInfo);
         statusInfoExtension.afterProcessingSpecification(event);
 
-        Element[] elements = getElements();
+        Element[] elements = getBodyElements();
 
         assert event.getRootElement().toXML().contains(expectedResult);
         assert doCheckForNote("h5", expectedResult, elements);
@@ -129,7 +119,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
         statusInfoExtension.setStatusInfo(statusInfo);
         statusInfoExtension.afterProcessingSpecification(event);
 
-        Element[] elements = getElements();
+        Element[] elements = getBodyElements();
 
         assert event.getRootElement().toXML().contains(expectedResult);
         assert doCheckForNote("h5", expectedResult, elements);
@@ -144,7 +134,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
         statusInfoExtension.setStatusInfo(statusInfo);
         statusInfoExtension.afterProcessingSpecification(event);
 
-        Element[] elements = getElements();
+        Element[] elements = getBodyElements();
 
         assert event.getRootElement().toXML().contains(expectedResult);
         assert doCheckForNote("h5", expectedResult, elements);
@@ -159,7 +149,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
         statusInfoExtension.setStatusInfo(statusInfo);
         statusInfoExtension.afterProcessingSpecification(event);
 
-        Element[] elements = getElements();
+        Element[] elements = getBodyElements();
 
         assert event.getRootElement().toXML().contains(expectedResult);
         assert doCheckForNote("h5", expectedResult, elements);
@@ -174,75 +164,77 @@ public class OverwriteStatusInfoDefaultValuesTest {
         statusInfoExtension.setStatusInfo(statusInfo);
         statusInfoExtension.afterProcessingSpecification(event);
 
-        Element[] elements = getElements();
+        Element[] elements = getBodyElements();
 
         assert event.getRootElement().toXML().contains(expectedResult);
-        assert doCheckForExpectedValueInElement(expectedResult, elements);
+        assert expectedNoteSizeWasApplied(expectedResult, elements);
     }
 
     private boolean doCheckForStyle(String expectedResult, Element[] elements) {
-        boolean expectedStyleWasApplied = false;
+        boolean result = false;
         for (Element e :elements) {
-            if(checkElementExists(e)) {
-                expectedStyleWasApplied = checkElementHasAttribute(expectedResult, expectedStyleWasApplied, e);
+            if(result) {
+                return true;
+            }
+            if(elementExists(e)) {
+                result = elementHasAttribute(e, expectedResult);
             }
         }
-        return expectedStyleWasApplied;
+        return result;
+    }
+
+    private boolean doCheckForTitlePrefix(String expectedResult, Element[] elements) {
+        boolean result = false;
+        for (Element e :elements) {
+            if (result) {
+                return true;
+            }
+            if(elementExists(e)) {
+                result = elementHasText(e, expectedResult);
+            }
+        }
+        return result;
     }
 
     private boolean doCheckForNote(String expectedMessageSize, String note, Element[] elements) {
-        boolean expectedNoteSizeWasApplied = false;
-        for (Element e : elements) {
-            Element[] children = getChildElementsOf(e, expectedMessageSize);
-            for (Element c : children) {
-                expectedNoteSizeWasApplied = checkAnExpectedValueWasApplied(c, note, expectedNoteSizeWasApplied);
-            }
-        }
-        return expectedNoteSizeWasApplied;
-    }
-
-    private boolean doCheckForExpectedValueInElement(String expectedResult, Element[] elements) {
         boolean result = false;
-        for (Element e :elements) {
-            result = searchElementsForChildren(expectedResult, result, e);
+        for (Element e : elements) {
+            if (result) {
+                return true;
+            }
+            result = expectedNoteSizeWasApplied(note, getChildElementsOf(e, expectedMessageSize));
         }
         return result;
     }
 
-    private boolean searchElementsForChildren(String expectedResult, boolean result, Element e) {
-        Element[] children = getChildElementsOf(e, "h5");
+    private boolean expectedNoteSizeWasApplied(String note, Element[] children) {
+        boolean result = false;
         for (Element c : children) {
-            result = checkAnExpectedValueWasApplied(c, expectedResult, result);
+            if (result){
+                return true;
+            }
+            result = elementContainsString(c, note);
         }
         return result;
     }
 
-    private boolean checkElementHasAttribute(String expectedResult, boolean result, Element e) {
-        if(getBody(e, "h5").getAttributeValue("style").equals(expectedResult)){
-            result = true;
-        }
-        return result;
+    private boolean elementHasAttribute(Element e, String expectedResult) {
+        return getBody(e, "h5").getAttributeValue("style").equals(expectedResult);
     }
 
-    private boolean checkElementHasText(String expectedResult, boolean result, Element e) {
-        if(getBody(e,"h5").getText().equals(expectedResult)){
-            result = true;
-        }
-        return result;
+    private boolean elementHasText(Element e, String expectedResult) {
+        return getBody(e, "h5").getText().equals(expectedResult);
     }
 
-    private boolean checkAnExpectedValueWasApplied(Element e, String s, boolean alreadyFoundExpected) {
-        if (alreadyFoundExpected){
-            return true;
-        }
+    private boolean elementContainsString(Element e, String s) {
         return e.getText().contains(s);
     }
 
-    private boolean checkElementExists(Element e) {
+    private boolean elementExists(Element e) {
         return (getBody(e,"h5") != null) && (getBody(e,"h5").hasChildren());
     }
 
-    private Element[] getElements() {
+    private Element[] getBodyElements() {
         Element body = getBody(event.getRootElement(), "body");
         return getChildElementsOf(body, "div");
     }

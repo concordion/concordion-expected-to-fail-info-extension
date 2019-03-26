@@ -101,11 +101,13 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
     private void setNewStatusTextWithReason(Element example, String statusText, String status) {
         Element originalExampleStatus = originalExampleStatus(example);
 
-        originalExampleStatus.appendSister(
-                newMessage(statusInfo.getReasonPrefix(), statusInfo.getReasonPrefix() + SPACE + statusText));
+        appendSiblingElement(statusText, originalExampleStatus, statusInfo.getReasonPrefix());
+        appendSiblingElement(status, originalExampleStatus, statusInfo.getTitleTextPrefix());
+    }
 
+    private void appendSiblingElement(String status, Element originalExampleStatus, String titleTextPrefix) {
         originalExampleStatus.appendSister(
-                newMessage(statusInfo.getTitleTextPrefix(), statusInfo.getTitleTextPrefix() + SPACE + status));
+                newMessage(titleTextPrefix, titleTextPrefix + SPACE + status));
     }
 
     private Element[] getAllExamplesInSpec(Element body) {
