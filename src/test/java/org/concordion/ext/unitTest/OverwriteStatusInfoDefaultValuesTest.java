@@ -60,8 +60,8 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element[] result = getStatusInfoExtensionProcessingResult();
 
-        assert resultToXml().contains(title);
-        assert resultContainsValue(result, title);
+        assert elementHasText(resultToXml(), title);
+        assert resultWithElementContainsValue(result, h5_ELEMENT, title, false);
     }
 
     @Test
@@ -73,8 +73,8 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element[] result = getStatusInfoExtensionProcessingResult();
 
-        assert resultToXml().contains(style);
-        assert resultContainsAttribute(result, style);
+        assert elementHasText(resultToXml(), style);
+        assert resultWithElementContainsValue(result, h5_ELEMENT, style, true);
     }
 
     @Test
@@ -88,9 +88,9 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element[] result = getStatusInfoExtensionProcessingResult();
 
-        assert resultToXml().contains(h1_ELEMENT);
-        assert resultWithElementContainsValue(result, h1_ELEMENT, NEW_NOTE);
-        assert resultWithElementContainsValue(result, h1_ELEMENT, NEW_REASON);
+        assert elementHasText(resultToXml(), h1_ELEMENT);
+        assert resultWithElementContainsValue(result, h1_ELEMENT, NEW_NOTE, false);
+        assert resultWithElementContainsValue(result, h1_ELEMENT, NEW_REASON, false);
     }
 
     @Test
@@ -101,8 +101,8 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element[] result = getStatusInfoExtensionProcessingResult();
 
-        assert resultToXml().contains(NEW_REASON);
-        assert resultWithElementContainsValue(result, h5_ELEMENT, NEW_REASON);
+        assert elementHasText(resultToXml(), NEW_REASON);
+        assert resultWithElementContainsValue(result, h5_ELEMENT, NEW_REASON, false);
     }
 
     @Test
@@ -113,8 +113,8 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element[] result = getStatusInfoExtensionProcessingResult();
 
-        assert resultToXml().contains(NEW_NOTE);
-        assert resultWithElementContainsValue(result, h5_ELEMENT, NEW_NOTE);
+        assert elementHasText(resultToXml(), NEW_NOTE);
+        assert resultWithElementContainsValue(result, h5_ELEMENT, NEW_NOTE, false);
     }
 
     @Test
@@ -126,8 +126,8 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element[] result = getStatusInfoExtensionProcessingResult();
 
-        assert resultToXml().contains(titleText);
-        assert resultWithElementContainsValue(result, h5_ELEMENT, titleText);
+        assert elementHasText(resultToXml(), titleText);
+        assert resultWithElementContainsValue(result, h5_ELEMENT, titleText, false);
     }
 
     @Test
@@ -139,8 +139,8 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element[] result = getStatusInfoExtensionProcessingResult();
 
-        assert resultToXml().contains(titleText);
-        assert resultWithElementContainsValue(result, h5_ELEMENT, titleText);
+        assert elementHasText(resultToXml(), titleText);
+        assert resultWithElementContainsValue(result, h5_ELEMENT, titleText, false);
     }
 
     @Test
@@ -152,8 +152,8 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         Element[] result = getStatusInfoExtensionProcessingResult();
 
-        assert resultToXml().contains(titleText);
-        assert elementsContainString(result, titleText);
+        assert elementHasText(resultToXml(), titleText);
+        assert resultWithElementContainsValue(result, h5_ELEMENT, titleText, false);
     }
 
     private void executeStatusInfoExtension(StatusInfo statusInfo) {
@@ -165,78 +165,51 @@ public class OverwriteStatusInfoDefaultValuesTest {
         return event.getRootElement().toXML();
     }
 
-    private boolean resultContainsAttribute(Element[] elements, String expectedResult) {
-        boolean result = false;
-        for (Element element :elements) {
-            if(result) {
-                return true;
-            }
-            if(elementExists(element)) {
-                result = elementHasAttribute(element, expectedResult);
-            }
-        }
-        return result;
-    }
-
-    private boolean resultContainsValue(Element[] elements, String expectedResult) {
-        boolean result = false;
-        for (Element element :elements) {
-            if (result) {
-                return true;
-            }
-            if(elementExists(element)) {
-                result = elementHasText(element, expectedResult);
-            }
-        }
-        return result;
-    }
-
-    private boolean resultWithElementContainsValue(Element[] elements, String tag, String value) {
-        boolean result = false;
+    private boolean resultWithElementContainsValue(Element[] elements, String name, String value, boolean isAttribute) {
         for (Element element : elements) {
-            if (result) {
+            if (elementWithNameExistsWithChildren(element, name)) {
+                if (elementAtHasValue(element, name, value, isAttribute)) {
+                    return true;
+                }
+
+                resultWithElementContainsValue(element.getChildElements(name), name, value, isAttribute);
+            }
+            if (element.getText().contains(value)) {
                 return true;
             }
-            Element[] childElements = element.getChildElements(tag);
-            result = elementsContainString(childElements, value);
         }
-        return result;
+        return false;
     }
 
-    private boolean elementsContainString(Element[] elements, String value) {
-        boolean result = false;
-        for (Element element : elements) {
-            if (result){
-                return true;
-            }
-            result = elementContainsValue(element, value);
+    private boolean elementAtHasValue(Element element, String name, String value, boolean isAttribute) {
+        if (isAttribute) {
+            return elementHasAttribute(element, name, value);
+        } else {
+            return elementHasText(element, name, value);
         }
-        return result;
     }
 
-    private boolean elementHasAttribute(Element element, String expectedValue) {
-        return getBody(element, h5_ELEMENT).getAttributeValue("style").equals(expectedValue);
+    private boolean elementHasText(String text, String value) {
+        return text.contains(value);
     }
 
-    private boolean elementHasText(Element element, String expectedValue) {
-        return getBody(element, h5_ELEMENT).getText().equals(expectedValue);
+    private boolean elementHasAttribute(Element element, String name, String expectedValue) {
+        String elementAttribute = element.getFirstChildElement(name).getAttributeValue("style");
+        return elementAttribute.equals(expectedValue);
     }
 
-    private boolean elementContainsValue(Element element, String expectedValue) {
-        return element.getText().contains(expectedValue);
+    private boolean elementHasText(Element element, String name, String expectedValue) {
+        String elementValue = element.getFirstChildElement(name).getText();
+        return elementValue.equals(expectedValue);
     }
 
-    private boolean elementExists(Element element) {
-        return (getBody(element, h5_ELEMENT) != null) && (getBody(element, h5_ELEMENT).hasChildren());
+    private boolean elementWithNameExistsWithChildren(Element element, String name) {
+        return (element.getFirstChildElement(name) != null) && (element.getFirstChildElement(name).hasChildren());
     }
 
     private Element[] getStatusInfoExtensionProcessingResult() {
-        Element body = getBody(event.getRootElement(), "body");
-        return body.getChildElements("div");
-    }
-
-    private Element getBody(Element element, String name) {
-        return element.getFirstChildElement(name);
+        Element element = event.getRootElement().getFirstChildElement("body");
+        return element.getChildElements("div");
     }
 
 }
