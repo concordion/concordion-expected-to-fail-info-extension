@@ -22,32 +22,34 @@ public class StatusInfo {
         return this;
     }
 
-    public StatusInfo setMessageSize(String newMessageSize) {
-        this.messageSize = ALLOWED_MESSAGE_SIZES.contains(newMessageSize.toLowerCase())?newMessageSize:messageSize;
+    public StatusInfo withMessageSize(String newMessageSize) {
+        if (ALLOWED_MESSAGE_SIZES.contains(newMessageSize.toLowerCase())) {
+            this.messageSize = newMessageSize;
+        }
         return this;
     }
 
-    public StatusInfo setTitleTextPrefix(String value) {
+    public StatusInfo withTitleTextPrefix(String value) {
         this.titleTextPrefix = value;
         return this;
     }
 
-    public StatusInfo setReasonPrefixMessage(String value) {
+    public StatusInfo withReasonPrefixMessage(String value) {
         this.reasonPrefix = value;
         return this;
     }
 
-    public StatusInfo setExpectedToFailTitleText(String value) {
+    public StatusInfo withExpectedToFailTitleText(String value) {
         this.expectedToFailTitleText = value;
         return this;
     }
 
-    public StatusInfo setIgnoredTitleText(String value) {
+    public StatusInfo withIgnoredTitleText(String value) {
         this.ignoredTitleText = value;
         return this;
     }
 
-    public StatusInfo setUnimplementedTitleText(String value) {
+    public StatusInfo withUnimplementedTitleText(String value) {
         this.unimplementedTitleText = value;
         return this;
     }
@@ -79,4 +81,5 @@ public class StatusInfo {
     String getUnimplementedTitleText() {
         return unimplementedTitleText;
     }
+
 }

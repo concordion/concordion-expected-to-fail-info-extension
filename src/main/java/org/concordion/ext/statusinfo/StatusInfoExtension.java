@@ -39,7 +39,6 @@ import org.concordion.api.listener.SpecificationProcessingListener;
  * Please see the demo of this project for more examples.
  *
  * @author Luke Pearson
- *
  */
 public class StatusInfoExtension implements SpecificationProcessingListener, ConcordionExtension {
 
@@ -48,7 +47,7 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
 
     private StatusInfo statusInfo = new StatusInfo();
 
-    public StatusInfoExtension setStatusInfo(StatusInfo statusInfo){
+    public StatusInfoExtension setStatusInfo(StatusInfo statusInfo) {
         this.statusInfo = statusInfo;
         return this;
     }
@@ -63,13 +62,25 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
 
     @Override
     public void afterProcessingSpecification(SpecificationProcessingEvent event) {
-        Element spec = getSpecification(event);
+        Element specification = getSpecification(event);
 
-        if (spec == null)
+        if (specification == null) {
             return;
+        }
 
-        Element[] examples = getAllExamplesInSpec(spec);
+        Element[] examples = getAllExamplesInSpec(specification);
+        applyStatusInfoOn(examples);
+    }
 
+    private Element getSpecification(SpecificationProcessingEvent event) {
+        return event.getRootElement().getFirstChildElement("body");
+    }
+
+    private Element[] getAllExamplesInSpec(Element body) {
+        return body.getChildElements("div");
+    }
+
+    private void applyStatusInfoOn(Element[] examples) {
         for (Element example : examples) {
             String status = example.getAttributeValue("status", NAMESPACE_URI);
             String statusText = example.getAttributeValue("example", NAMESPACE_URI);
@@ -79,6 +90,10 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
                 removeOriginalStatusElement(example);
             }
         }
+    }
+
+    private boolean isNotNull(String s) {
+        return s != null && !s.equals("");
     }
 
     private void setExampleStatus(Element example, String status, String statusText) {
@@ -96,41 +111,31 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
         }
     }
 
-    private void removeOriginalStatusElement(Element example) { example.removeChild(originalExampleStatus(example)); }
-
     private void setNewStatusTextWithReason(Element example, String statusText, String status) {
-        Element originalExampleStatus = originalExampleStatus(example);
-
-        appendSiblingElement(statusText, originalExampleStatus, statusInfo.getReasonPrefix());
-        appendSiblingElement(status, originalExampleStatus, statusInfo.getTitleTextPrefix());
+        appendSiblingElement(statusText, example, statusInfo.getReasonPrefix());
+        appendSiblingElement(status, example, statusInfo.getTitleTextPrefix());
     }
 
-    private void appendSiblingElement(String status, Element originalExampleStatus, String titleTextPrefix) {
-        originalExampleStatus.appendSister(
-                newMessage(titleTextPrefix, titleTextPrefix + SPACE + status));
+    private void appendSiblingElement(String status, Element example, String titleTextPrefix) {
+        Element originalExampleStatus = getOriginalExampleStatus(example);
+        String message = titleTextPrefix + SPACE + status;
+        Element newStatusInfoElement = createNewStatusInfoElement(titleTextPrefix, message);
+        originalExampleStatus.appendSister(newStatusInfoElement);
     }
 
-    private Element[] getAllExamplesInSpec(Element body) {
-        return body.getChildElements("div");
+    private Element createNewStatusInfoElement(String styleClass, String message) {
+        return new Element(statusInfo.getMessageSize())
+                .appendText(message)
+                .addStyleClass(styleClass)
+                .addAttribute("style", statusInfo.getStyle());
     }
 
-    private Element getSpecification(SpecificationProcessingEvent event) {
-        return event.getRootElement().getFirstChildElement("body");
+    private void removeOriginalStatusElement(Element example) {
+        example.removeChild(getOriginalExampleStatus(example));
     }
 
-    private Element originalExampleStatus(Element example) {
+    private Element getOriginalExampleStatus(Element example) {
         return example.getFirstChildElement("p");
     }
-
-    private Element newMessage(String styleClass, String message) {
-        Element statusNote = new Element(statusInfo.getMessageSize());
-        statusNote.appendText(message);
-        statusNote.addStyleClass(styleClass);
-        statusNote.addAttribute("style", statusInfo.getStyle());
-
-        return statusNote;
-    }
-
-    private boolean isNotNull(String status) { return status != null; }
 
 }
