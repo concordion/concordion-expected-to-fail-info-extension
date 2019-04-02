@@ -10,9 +10,9 @@ import org.concordion.api.listener.SpecificationProcessingListener;
  * Displays a message containing a Note and a Reason in the corresponding output specification
  * when an example is annotated with a status modifier with additional reason text.
  *
- * <p></p>
+ * </p>
  * Sample usage:
- * <p></p>
+ * </p>
  * <pre>
  * In a Fixture class annotate the class with:
  * \@Extensions({ StatusInfoExtension.class })
@@ -24,19 +24,19 @@ import org.concordion.api.listener.SpecificationProcessingListener;
  * Or
  * ## [My Specification Name](- "Reason my specification is unimplemented c:status=unimplemented")
  * </pre>
- * <p></p>
+ * </p>
  * In the completed specification:
  * <ul>
  * <li>Note: resolves to 'This example has been marked as EXPECTED_TO_FAIL'</li>
  * <li>Reason: Based on the sample usage above, would resolve to 'Reason my specification is failing'</li>
  * </ul>
- * <p></p>
+ * </p>
  * This can be applied to the <code>expectedToFail</code>, <code>ignored</code> and <code>unimplemented</code>
  * status modifiers.
- * <p></p>
+ * </p>
  * The text for each part of the message can be overridden, as well as the message size and style.
- * <p></p>
- * Please see the demo of this project for more examples.
+ * </p>
+ * Please see the <a href="https://github.com/concordion/concordion-status-info-extension-demo">status-info-demo</a> of this project for more examples.
  *
  * @author Luke Pearson
  */
@@ -63,12 +63,11 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
     @Override
     public void afterProcessingSpecification(SpecificationProcessingEvent event) {
         Element specification = getSpecification(event);
-
         if (specification == null) {
             return;
         }
 
-        Element[] examples = getAllExamplesInSpec(specification);
+        Element[] examples = getAllExamplesInSpecification(specification);
         applyStatusInfoOn(examples);
     }
 
@@ -76,8 +75,8 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
         return event.getRootElement().getFirstChildElement("body");
     }
 
-    private Element[] getAllExamplesInSpec(Element body) {
-        return body.getChildElements("div");
+    private Element[] getAllExamplesInSpecification(Element specification) {
+        return specification.getChildElements("div");
     }
 
     private void applyStatusInfoOn(Element[] examples) {
@@ -85,33 +84,33 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
             String status = example.getAttributeValue("status", NAMESPACE_URI);
             String statusText = example.getAttributeValue("example", NAMESPACE_URI);
 
-            if (isNotNull(status) && isNotNull(statusText)) {
+            if (isNotNullOrEmpty(status) && isNotNullOrEmpty(statusText)) {
                 setExampleStatus(example, status, statusText);
                 removeOriginalStatusElement(example);
             }
         }
     }
 
-    private boolean isNotNull(String s) {
+    private boolean isNotNullOrEmpty(String s) {
         return s != null && !s.equals("");
     }
 
     private void setExampleStatus(Element example, String status, String statusText) {
         switch (status.toLowerCase().trim()) {
             case "expectedtofail":
-                setNewStatusTextWithReason(example, statusText, statusInfo.getExpectedToFailTitleText());
+                setNewStatusTextAndReason(example, statusText, statusInfo.getExpectedToFailTitleText());
                 break;
             case "ignored":
-                setNewStatusTextWithReason(example, statusText, statusInfo.getIgnoredTitleText());
+                setNewStatusTextAndReason(example, statusText, statusInfo.getIgnoredTitleText());
                 break;
             case "unimplemented":
-                setNewStatusTextWithReason(example, statusText, statusInfo.getUnimplementedTitleText());
+                setNewStatusTextAndReason(example, statusText, statusInfo.getUnimplementedTitleText());
                 break;
             default:
         }
     }
 
-    private void setNewStatusTextWithReason(Element example, String statusText, String status) {
+    private void setNewStatusTextAndReason(Element example, String statusText, String status) {
         appendSiblingElement(statusText, example, statusInfo.getReasonPrefix());
         appendSiblingElement(status, example, statusInfo.getTitleTextPrefix());
     }
