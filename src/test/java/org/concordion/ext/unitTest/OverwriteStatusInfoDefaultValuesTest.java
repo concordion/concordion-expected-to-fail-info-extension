@@ -62,9 +62,9 @@ public class OverwriteStatusInfoDefaultValuesTest {
 
         executeStatusInfoExtension(statusInfo);
 
-        System.out.print(resultToXml());
-        assert elementHasText(resultToXml(), escapedScript);
-        assertFalse(resultToXml().contains(script));
+        String xml = resultToXml();
+        assert elementHasText(xml, escapedScript);
+        assertFalse(xml.contains(script));
     }
 
     @Test
