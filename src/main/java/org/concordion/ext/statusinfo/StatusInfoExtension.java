@@ -10,9 +10,9 @@ import org.concordion.api.listener.SpecificationProcessingListener;
  * Displays a message containing a Note and a Reason in the corresponding output specification
  * when an example is annotated with a status modifier with additional reason text.
  *
- * <p/>
+ * <p></p>
  * Sample usage:
- * <p/>
+ * <p></p>
  * <pre>
  * In a Fixture class annotate the class with:
  * \@Extensions({ StatusInfoExtension.class })
@@ -24,18 +24,18 @@ import org.concordion.api.listener.SpecificationProcessingListener;
  * Or
  * ## [My Specification Name](- "Reason my specification is unimplemented c:status=unimplemented")
  * </pre>
- * <p/>
+ * <p></p>
  * In the completed specification:
  * <ul>
  * <li>Note: resolves to 'This example has been marked as EXPECTED_TO_FAIL'</li>
  * <li>Reason: Based on the sample usage above, would resolve to 'Reason my specification is failing'</li>
  * </ul>
- * <p/>
+ * <p></p>
  * This can be applied to the <code>expectedToFail</code>, <code>ignored</code> and <code>unimplemented</code>
  * status modifiers.
- * <p/>
+ * <p></p>
  * The text for each part of the message can be overridden, as well as the message size and style.
- * <p/>
+ * <p></p>
  * Please see the <a href="https://github.com/concordion/concordion-status-info-extension-demo">status-info-demo</a> of this project for more examples.
  *
  * @author Luke Pearson
