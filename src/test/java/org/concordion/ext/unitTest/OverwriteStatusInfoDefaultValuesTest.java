@@ -17,6 +17,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Objects;
 
+import static org.junit.Assert.*;
+
 public class OverwriteStatusInfoDefaultValuesTest {
 
     private static final String PATH_TO_TEMPLATE = "org/concordion/ext/unitTest/SpecificationProcessingEventTestDocument.xml";
@@ -29,10 +31,19 @@ public class OverwriteStatusInfoDefaultValuesTest {
     private SpecificationProcessingEvent event;
     private StatusInfoExtension statusInfo;
 
+
     @Before
     public void initialize() throws IOException, ParsingException {
         statusInfo = new StatusInfoExtension();
-        event = setSpecificationProcessingEvent(getResourceFile());
+        File resourceFile = getResourceFile();
+        event = setSpecificationProcessingEvent(resourceFile);
+    }
+
+    private File getResourceFile() {
+        return new File(Objects.requireNonNull(getClass()
+                .getClassLoader()
+                .getResource(PATH_TO_TEMPLATE))
+                .getFile());
     }
 
     private SpecificationProcessingEvent setSpecificationProcessingEvent(File file) throws ParsingException, IOException {
@@ -43,11 +54,17 @@ public class OverwriteStatusInfoDefaultValuesTest {
         return new SpecificationProcessingEvent(resource, rootElement);
     }
 
-    private File getResourceFile() {
-        return new File(Objects.requireNonNull(getClass()
-                .getClassLoader()
-                .getResource(PATH_TO_TEMPLATE))
-                .getFile());
+    @Test
+    public void statusTextIsEscaped() {
+        String script = "<script type =\"text/JavaScript\">function Hello(){alert(\"Hello, World\");}</script>";
+        String escapedScript = "&lt;script type =\"text/JavaScript\"&gt;function Hello(){alert(\"Hello, World\");}&lt;/script&gt;";
+        StatusInfo statusInfo = new StatusInfo().withExpectedToFailTitleText(script);
+
+        executeStatusInfoExtension(statusInfo);
+
+        System.out.print(resultToXml());
+        assert elementHasText(resultToXml(), escapedScript);
+        assertFalse(resultToXml().contains(script));
     }
 
     @Test
