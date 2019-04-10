@@ -35,11 +35,11 @@ public class OverwriteStatusInfoDefaultValuesTest {
     @Before
     public void initialize() throws IOException, ParsingException {
         statusInfo = new StatusInfoExtension();
-        File resourceFile = getResourceFile();
-        event = setSpecificationProcessingEvent(resourceFile);
+        File specificationTemplateFile = loadTemplateFile();
+        event = setSpecificationProcessingEvent(specificationTemplateFile);
     }
 
-    private File getResourceFile() {
+    private File loadTemplateFile() {
         return new File(Objects.requireNonNull(getClass()
                 .getClassLoader()
                 .getResource(PATH_TO_TEMPLATE))
