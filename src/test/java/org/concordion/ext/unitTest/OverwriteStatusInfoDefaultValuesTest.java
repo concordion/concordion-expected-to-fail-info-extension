@@ -55,10 +55,10 @@ public class OverwriteStatusInfoDefaultValuesTest {
     }
 
     @Test
-    public void statusTextIsEscaped() {
+    public void statusInfoTextIsEscaped() {
         String script = "<script type =\"text/JavaScript\">function Hello(){alert(\"Hello, World\");}</script>";
         String escapedScript = "&lt;script type =\"text/JavaScript\"&gt;function Hello(){alert(\"Hello, World\");}&lt;/script&gt;";
-        StatusInfo statusInfo = new StatusInfo().withExpectedToFailTitleText(script);
+        StatusInfo statusInfo = new StatusInfo().withTitleTextPrefix(script);
 
         executeStatusInfoExtension(statusInfo);
 
