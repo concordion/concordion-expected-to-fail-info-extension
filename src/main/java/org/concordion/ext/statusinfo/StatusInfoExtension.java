@@ -6,10 +6,6 @@ import org.concordion.api.extension.ConcordionExtension;
 import org.concordion.api.listener.SpecificationProcessingEvent;
 import org.concordion.api.listener.SpecificationProcessingListener;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Displays a message containing a Note and a Reason in the corresponding output specification
  * when an example is annotated with a status modifier with additional reason text.
@@ -40,58 +36,19 @@ import java.util.List;
  * <p></p>
  * The text for each part of the message can be overridden, as well as the message size and style.
  * <p></p>
- * Please see the demo of this project for more examples.
+ * Please see the <a href="https://github.com/concordion/concordion-status-info-extension-demo">status-info-demo</a> of this project for more examples.
  *
  * @author Luke Pearson
- *
  */
 public class StatusInfoExtension implements SpecificationProcessingListener, ConcordionExtension {
 
     private static final String NAMESPACE_URI = "http://www.concordion.org/2007/concordion";
-    private String style = "font-weight: normal; text-decoration: none; color: #bb5050;";
-    private String messageSize = "h5";
+    private static final String SPACE = " ";
 
-    private String expectedToFailTitleText = "This example has been marked as EXPECTED TO FAIL";
-    private String ignoredTitleText = "This example has been marked as IGNORED";
-    private String unimplementedTitleText = "This example has been marked as UNIMPLEMENTED";
-    private String titleTextPrefix = "";
-    private String reasonPrefix = "Reason: ";
+    private StatusInfo statusInfo = new StatusInfo();
 
-    private static final List<String> ALLOWED_MESSAGE_SIZES = new ArrayList<>(Arrays.asList("h1","h2","h3","h4","h5","h6"));
-
-
-    public StatusInfoExtension setStyle(String style) {
-        this.style = style;
-        return this;
-    }
-
-    public StatusInfoExtension setHeaderElementSize(String value) {
-        this.messageSize = ALLOWED_MESSAGE_SIZES.contains(value.toLowerCase())?value:null;
-        return this;
-    }
-
-    public StatusInfoExtension setNoteMessage(String value) {
-        this.titleTextPrefix = value;
-        return this;
-    }
-
-    public StatusInfoExtension setReasonPrefixMessage(String value) {
-        this.reasonPrefix = value;
-        return this;
-    }
-
-    public StatusInfoExtension setExpectedToFailTest(String value) {
-        this.expectedToFailTitleText = value;
-        return this;
-    }
-
-    public StatusInfoExtension setIgnoredTitleText(String value) {
-        this.ignoredTitleText = value;
-        return this;
-    }
-
-    public StatusInfoExtension setUnimplementedTitleText(String value) {
-        this.unimplementedTitleText = value;
+    public StatusInfoExtension setStatusInfo(StatusInfo statusInfo) {
+        this.statusInfo = statusInfo;
         return this;
     }
 
@@ -105,49 +62,79 @@ public class StatusInfoExtension implements SpecificationProcessingListener, Con
 
     @Override
     public void afterProcessingSpecification(SpecificationProcessingEvent event) {
-        Element body = event.getRootElement().getFirstChildElement("body");
+        Element specification = getSpecification(event);
+        if (specification == null) {
+            return;
+        }
 
-        if (body != null) {
-            Element[] divs = body.getChildElements("div");
+        Element[] examples = getAllExamplesInSpecification(specification);
+        applyStatusInfoOn(examples);
+    }
 
-            for (Element div : divs) {
-                String status = div.getAttributeValue("status", NAMESPACE_URI);
-                String statusText = div.getAttributeValue("example", NAMESPACE_URI);
+    private Element getSpecification(SpecificationProcessingEvent event) {
+        return event.getRootElement().getFirstChildElement("body");
+    }
 
-                if (status != null && statusText != null) {
-                    Element e = div.getFirstChildElement("p");
+    private Element[] getAllExamplesInSpecification(Element specification) {
+        return specification.getChildElements("div");
+    }
 
-                    switch (status.toLowerCase().trim()) {
-                        case "expectedtofail":
-                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
-                            e.appendSister(
-                                    newMessage(titleTextPrefix, titleTextPrefix + expectedToFailTitleText));
-                            break;
-                        case "ignored":
-                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
-                            e.appendSister(newMessage(titleTextPrefix, titleTextPrefix + ignoredTitleText));
-                            break;
-                        case "unimplemented":
-                            e.appendSister(newMessage(reasonPrefix, reasonPrefix + statusText));
-                            e.appendSister(
-                                    newMessage(titleTextPrefix, titleTextPrefix + unimplementedTitleText));
-                            break;
-                        default:
-                    }
+    private void applyStatusInfoOn(Element[] examples) {
+        for (Element example : examples) {
+            String status = example.getAttributeValue("status", NAMESPACE_URI);
+            String statusText = example.getAttributeValue("example", NAMESPACE_URI);
 
-                    div.removeChild(div.getFirstChildElement("p"));
-                }
+            if (isNotNullOrEmpty(status) && isNotNullOrEmpty(statusText)) {
+                setExampleStatus(example, status, statusText);
+                removeOriginalStatusElement(example);
             }
         }
     }
 
-    private Element newMessage(String styleClass, String message) {
-        Element statusNote = new Element(messageSize);
-        statusNote.appendText(message);
-        statusNote.addStyleClass(styleClass);
-        statusNote.addAttribute("style", style);
+    private boolean isNotNullOrEmpty(String s) {
+        return s != null && !s.equals("");
+    }
 
-        return statusNote;
+    private void setExampleStatus(Element example, String status, String statusText) {
+        switch (status.toLowerCase().trim()) {
+            case "expectedtofail":
+                setNewStatusTextAndReason(example, statusText, statusInfo.getExpectedToFailTitleText());
+                break;
+            case "ignored":
+                setNewStatusTextAndReason(example, statusText, statusInfo.getIgnoredTitleText());
+                break;
+            case "unimplemented":
+                setNewStatusTextAndReason(example, statusText, statusInfo.getUnimplementedTitleText());
+                break;
+            default:
+        }
+    }
+
+    private void setNewStatusTextAndReason(Element example, String statusText, String status) {
+        appendSiblingElement(statusText, example, statusInfo.getReasonPrefix());
+        appendSiblingElement(status, example, statusInfo.getTitleTextPrefix());
+    }
+
+    private void appendSiblingElement(String status, Element example, String titleTextPrefix) {
+        Element originalExampleStatus = getOriginalExampleStatus(example);
+        String message = titleTextPrefix + SPACE + status;
+        Element newStatusInfoElement = createNewStatusInfoElement(titleTextPrefix, message);
+        originalExampleStatus.appendSister(newStatusInfoElement);
+    }
+
+    private Element createNewStatusInfoElement(String styleClass, String message) {
+        return new Element(statusInfo.getMessageSize())
+                .appendText(message)
+                .addStyleClass(styleClass)
+                .addAttribute("style", statusInfo.getStyle());
+    }
+
+    private void removeOriginalStatusElement(Element example) {
+        example.removeChild(getOriginalExampleStatus(example));
+    }
+
+    private Element getOriginalExampleStatus(Element example) {
+        return example.getFirstChildElement("p");
     }
 
 }
