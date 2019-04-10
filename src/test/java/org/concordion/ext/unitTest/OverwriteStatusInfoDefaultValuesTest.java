@@ -31,7 +31,6 @@ public class OverwriteStatusInfoDefaultValuesTest {
     private SpecificationProcessingEvent event;
     private StatusInfoExtension statusInfo;
 
-
     @Before
     public void initialize() throws IOException, ParsingException {
         statusInfo = new StatusInfoExtension();
