@@ -1,8 +1,13 @@
 package org.concordion.ext.unitTest;
 
-import nu.xom.Builder;
-import nu.xom.Document;
-import nu.xom.ParsingException;
+import static org.junit.Assert.assertFalse;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Objects;
+
 import org.concordion.api.Element;
 import org.concordion.api.Resource;
 import org.concordion.api.listener.SpecificationProcessingEvent;
@@ -11,15 +16,17 @@ import org.concordion.ext.statusinfo.StatusInfoExtension;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Objects;
-
-import static org.junit.Assert.*;
+import nu.xom.Builder;
+import nu.xom.Document;
+import nu.xom.ParsingException;
 
 public class OverwriteStatusInfoDefaultValuesTest {
+
+    // Expected Values for Default StatusInfo
+    private static final String DEFAULT_MESSAGE_SIZE_H3_ELEMENT = "h3";
+    private static final String DEFAULT_STYLE = "font-weight: normal; text-decoration: none; color: #bb5050;";
+    private static final String DEFAULT_TITLE_TEXT_PREFIX = "Note:";
+    private static final String DEFAULT_REASON_PREFIX = "Reason:";
 
     private static final String PATH_TO_TEMPLATE = "org/concordion/ext/unitTest/SpecificationProcessingEventTestDocument.xml";
     private static final String h1_ELEMENT = "h1";
@@ -51,6 +58,23 @@ public class OverwriteStatusInfoDefaultValuesTest {
         Element rootElement = new Element(document.getRootElement());
         Resource resource = new Resource("/" + file.getPath());
         return new SpecificationProcessingEvent(resource, rootElement);
+    }
+
+    @Test
+    public void defaulStatusInfoTest() {
+        StatusInfo statusInfo = new StatusInfo();
+        executeStatusInfoExtension(statusInfo);
+
+        Element[] result = getStatusInfoExtensionProcessingResult();
+
+        assert elementHasText(resultToXml(), DEFAULT_STYLE);
+        assert elementHasText(resultToXml(), DEFAULT_TITLE_TEXT_PREFIX + " This example has been marked as EXPECTED TO FAIL");
+        assert elementHasText(resultToXml(), DEFAULT_TITLE_TEXT_PREFIX + " This example has been marked as IGNORED");
+        assert elementHasText(resultToXml(), DEFAULT_TITLE_TEXT_PREFIX + " This example has been marked as UNIMPLEMENTED");
+        assert elementHasText(resultToXml(), DEFAULT_REASON_PREFIX);
+        assert resultWithElementContainsValue(result, DEFAULT_MESSAGE_SIZE_H3_ELEMENT, DEFAULT_STYLE, true);
+        assert resultWithElementContainsValue(result, DEFAULT_MESSAGE_SIZE_H3_ELEMENT, DEFAULT_TITLE_TEXT_PREFIX, true);
+        assert resultWithElementContainsValue(result, DEFAULT_MESSAGE_SIZE_H3_ELEMENT, DEFAULT_REASON_PREFIX, true);
     }
 
     @Test
@@ -90,7 +114,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
         Element[] result = getStatusInfoExtensionProcessingResult();
 
         assert elementHasText(resultToXml(), style);
-        assert resultWithElementContainsValue(result, h5_ELEMENT, style, true);
+        assert resultWithElementContainsValue(result, DEFAULT_MESSAGE_SIZE_H3_ELEMENT, style, true);
     }
 
     @Test
