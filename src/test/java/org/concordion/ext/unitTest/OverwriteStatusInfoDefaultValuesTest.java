@@ -61,7 +61,7 @@ public class OverwriteStatusInfoDefaultValuesTest {
     }
 
     @Test
-    public void defaulStatusInfoTest() {
+    public void defaultStatusInfoTest() {
         StatusInfo statusInfo = new StatusInfo();
         executeStatusInfoExtension(statusInfo);
 
