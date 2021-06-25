@@ -2,11 +2,6 @@ apply from: "https://raw.githubusercontent.com/concordion/concordion-extension-b
 
 description = "An extension to concordion to highlight expected to fail information on living documentation"
 
-compileJava {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
-}
-
 ext {
     developers = {
         developer {
