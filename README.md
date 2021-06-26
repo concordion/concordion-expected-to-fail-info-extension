@@ -1,4 +1,4 @@
-# concordion-status-info-extension
+[![Build and Test](https://github.com/concordion/concordion-status-info-extension/actions/workflows/ci.yml/badge.svg)](https://github.com/concordion/concordion-status-info-extension/actions/workflows/ci.yml)
 
 This [Concordion](https://concordion.org/) extension allows for the displaying of a Note and Reason on the result report, 
 when the `status` of specific examples in a specification is [set as](https://concordion.org/instrumenting/java/markdown/#implementation-status) 
